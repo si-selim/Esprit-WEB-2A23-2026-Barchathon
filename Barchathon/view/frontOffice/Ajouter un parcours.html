@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracer un parcours</title>
+    <link rel="stylesheet" href="./Ajouter un parcours_files/leaflet.css">
+    <style>
+        :root {
+            --ink: #102a43;
+            --teal: #0f766e;
+            --bg: #f8fcfc;
+            --card: #ffffff;
+            --sand: #fff8e7;
+        }
+        body { margin:0; font-family:"Segoe UI",sans-serif; background:linear-gradient(180deg, var(--sand), var(--bg)); color: var(--ink); }
+        .wrap { width:min(1220px, calc(100% - 32px)); margin:28px auto; }
+        .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+        .top a { text-decoration:none; background:#fff; color:var(--ink); padding:10px 14px; border-radius:999px; font-weight:700; border:1px solid #cbd5e1; }
+        
+        .layout { display:grid; grid-template-columns:1.35fr .85fr; gap:18px; }
+        .panel { background:#fff; border-radius:24px; padding:22px; box-shadow:0 16px 40px rgba(16,42,67,.08); }
+        
+        #routeMap { height:560px; width:100%; border-radius:24px; border:1px solid #cbd5e1; }
+        
+        .map-toolbar { display:flex; gap:10px; margin-bottom:14px; }
+        .tool-alt { border:0; background:#e2e8f0; color:var(--ink); padding:11px 16px; border-radius:14px; font-weight:700; cursor:pointer; }
+        
+        .field { display:grid; gap:8px; margin-bottom:14px; }
+        label { font-weight: 700; }
+        input, select { width:100%; padding:12px 14px; border-radius:14px; border:1px solid #cbd5e1; font:inherit; }
+        
+        .metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px; }
+        .metric { background:#f8fafc; border-radius:18px; padding:14px; text-align:center; border: 1px solid #e2e8f0; }
+        
+        .btn-submit { width: 100%; border:0; background:var(--teal); color:white; padding:14px; border-radius:14px; font-weight:700; cursor:pointer; font-size: 1rem; margin-top: 10px; }
+        
+        @media (max-width:920px) { .layout { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="top">
+            <h1>Tracer un parcours - Gestion</h1>
+            <div>
+                <a href="#">Retour au marathon</a>
+            </div>
+        </div>
+
+        <div class="layout">
+            <section class="panel">
+                <div class="map-toolbar">
+                    <button type="button" id="undoBtn" class="tool-alt">Annuler dernier point</button>
+                    <button type="button" id="resetBtn" class="tool-alt">Réinitialiser</button>
+                </div>
+                <div id="routeMap"></div>
+                
+                <div class="metrics">
+                    <div class="metric"><strong id="pointsCount">0</strong><div>Points tracés</div></div>
+                    <div class="metric"><strong id="distanceKm">0.00 km</strong><div>Distance calculée</div></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Enregistrer le parcours</h2>
+                <form method="post" id="routeForm">
+                    
+                    <div class="field">
+                        <label for="nom_parcours">Nom du parcours</label>
+                        <input type="text" id="nom_parcours" name="nom_parcours" placeholder="Ex: Circuit A" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="point_départ">Point de départ</label>
+                        <input type="text" id="point_départ" name="point_départ" placeholder="Lieu de départ" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="point_arrivée">Point d'arrivée</label>
+                        <input type="text" id="point_arrivée" name="point_arrivée" placeholder="Lieu d'arrivée" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="difficulté">Difficulté</label>
+                        <select id="difficulté" name="difficulté" required>
+                            <option value="facile">Facile</option>
+                            <option value="moyen">Moyen</option>
+                            <option value="difficile">Difficile</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="distance">Distance (Auto)</label>
+                        <input type="text" id="distance" name="distance" readonly required>
+                    </div>
+
+                    <input type="hidden" id="route_map_path" name="route_map_path">
+                    
+                    <button type="submit" class="btn-submit">Enregistrer le parcours</button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <script src="./Ajouter un parcours_files/leaflet.js.télécharger"></script>
+    <script>
+        const routeDistanceInput = document.getElementById('distance');
+        const routePathInput = document.getElementById('route_map_path');
+        const pointsCount = document.getElementById('pointsCount');
+        const distanceKm = document.getElementById('distanceKm');
+        const undoBtn = document.getElementById('undoBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const points = [];
+        const markers = [];
+        let polyline = null;
+
+        // Initialisation de la carte sur la Tunisie
+        const map = L.map('routeMap').setView([36.8065, 10.1815], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        function computeDistance() {
+            let total = 0;
+            for (let i = 1; i < points.length; i++) {
+                total += map.distance([points[i-1].lat, points[i-1].lng], [points[i].lat, points[i].lng]);
+            }
+            return (total / 1000).toFixed(2);
+        }
+
+        function redraw() {
+            if (polyline) map.removeLayer(polyline);
+            markers.forEach(m => map.removeLayer(m));
+            markers.length = 0;
+
+            if (points.length > 0) {
+                polyline = L.polyline(points, {color: '#e63946', weight: 5}).addTo(map);
+                points.forEach((p, i) => {
+                    const m = L.marker([p.lat, p.lng], {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="background:#102a43;color:#fff;border:2px solid #fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${i+1}</div>`
+                        })
+                    }).addTo(map);
+                    markers.push(m);
+                });
+            }
+
+            const d = computeDistance();
+            pointsCount.textContent = points.length;
+            distanceKm.textContent = d + " km";
+            routeDistanceInput.value = d;
+            routePathInput.value = JSON.stringify(points);
+        }
+
+        map.on('click', (e) => {
+            points.push({lat: e.latlng.lat, lng: e.latlng.lng});
+            redraw();
+        });
+
+        undoBtn.addEventListener('click', () => { points.pop(); redraw(); });
+        resetBtn.addEventListener('click', () => { points.length = 0; redraw(); });
+    </script>
+</body>
+</html>

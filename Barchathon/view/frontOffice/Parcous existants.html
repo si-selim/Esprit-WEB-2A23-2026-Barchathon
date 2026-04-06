@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerer marathon</title>
+    <style>
+        :root {
+            --ink: #102a43;
+            --teal: #0f766e;
+            --rose: #be123c;
+            --slate: #64748b;
+        }
+        body { margin:0; font-family:"Segoe UI",sans-serif; background:linear-gradient(180deg,#fff8e7,#eef8f8); color: var(--ink); }
+        .wrap { width:min(1200px, calc(100% - 32px)); margin:28px auto; }
+        .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+        .top a { text-decoration:none; background:#fff; color: var(--ink); padding:10px 14px; border-radius:999px; font-weight:700; border: 1px solid #cbd5e1; }
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+        .panel { background:#fff; border-radius:24px; padding:22px; box-shadow:0 16px 40px rgba(16,42,67,.08); }
+        .list { display:grid; gap:12px; }
+        
+        .item { 
+            background:#f8fafc; 
+            border-radius:18px; 
+            padding:16px; 
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info { flex: 1; }
+        .item-info strong { font-size: 1.1rem; display: block; margin-bottom: 4px; }
+        .item-info span { color: var(--slate); font-size: 0.9rem; }
+
+        .item-actions { display: flex; gap: 8px; }
+
+        /* Boutons de la liste */
+        .btn-sm { 
+            text-decoration: none; 
+            font-size: 0.85rem; 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            border: 0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-edit { background: #e2e8f0; color: var(--ink); }
+        .btn-delete { background: #fee2e2; color: var(--rose); }
+        .btn-edit:hover { background: #cbd5e1; }
+        .btn-delete:hover { background: #fecaca; }
+
+        input, textarea, select { width:100%; border:1px solid #cbd5e1; border-radius:14px; padding:12px 14px; font:inherit; margin-bottom:12px; box-sizing: border-box;}
+        button[type="submit"], .btn-main { border:0; background: var(--teal); color:white; padding:12px 18px; border-radius:14px; font-weight:700; cursor:pointer; text-decoration: none; display: inline-block; }
+        
+        @media (max-width:900px) { .grid { grid-template-columns:1fr; } .item { flex-direction: column; align-items: flex-start; gap: 12px; } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="top">
+            <h1>Gérer - Semi Marathon de Sousse Corniche</h1>
+            <div>
+                <a href="listMarathons.php">Retour mes marathons</a>
+                <a href="detailMarathon.php?id=2">Voir côté front</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <section class="panel">
+                <h2>Parcours existants</h2>
+                <div class="list">
+                    <div class="item">
+                        <div class="item-info">
+                            <strong>Corniche Sprint</strong>
+                            <span>5 km - Facile</span>
+                            <div style="margin-top:4px;">Idéal pour débuter au bord de la mer.</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="editRoute.php?id=1" class="btn-sm btn-edit">Modifier</a>
+                            <a href="deleteRoute.php?id=1" class="btn-sm btn-delete" onclick="return confirm('Supprimer ce parcours ?')">Supprimer</a>
+                        </div>
+                    </div>
+
+                    <div class="item">
+                        <div class="item-info">
+                            <strong>Semi Corniche</strong>
+                            <span>21 km - Moyen</span>
+                            <div style="margin-top:4px;">Parcours principal le long de la corniche.</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="editRoute.php?id=2" class="btn-sm btn-edit">Modifier</a>
+                            <a href="deleteRoute.php?id=2" class="btn-sm btn-delete" onclick="return confirm('Supprimer ce parcours ?')">Supprimer</a>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top:24px;">Ajouter un parcours</h3>
+                <p style="color: var(--slate); font-size: 0.95rem;">L'organisateur doit tracer le trajet sur une carte. La distance est calculée automatiquement.</p>
+                <a href="designRoute.php?id=2" class="btn-main">Tracer un parcours sur la carte</a>
+            </section>
+
+            <section class="panel">
+                <h2>Stands existants</h2>
+                <div class="list">
+                    <div class="item">
+                        <div class="item-info">
+                            <strong>Stand Nutrition</strong>
+                            <span>Nutrition • 2 produits</span>
+                            <div style="margin-top:4px;">Collations sportives et nutrition rapide.</div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="selectStandProducts.php?id=2&stand=1" class="btn-sm btn-edit" style="background:var(--teal); color:white;">Produits</a>
+                            <a href="deleteStand.php?id=1" class="btn-sm btn-delete">Supprimer</a>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top:24px;">Ajouter un stand</h3>
+                <form method="post">
+                    <input type="text" name="stand_name" placeholder="Nom du stand" required>
+                    <input type="text" name="stand_category" placeholder="Catégorie" required>
+                    <textarea name="stand_description" placeholder="Description du stand" rows="3" required></textarea>
+                    <button type="submit">Ajouter le stand</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

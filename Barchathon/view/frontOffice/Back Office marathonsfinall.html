@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!-- saved from url=(0097)file:///C:/Users/dufhv/Downloads/Barchathon/view/frontOffice/Back%20Office%20marathons_final.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back Office marathons</title>
+    <style>
+        :root {
+            --ink:#102a43;
+            --teal:#0f766e;
+            --sun:#ffb703;
+            --bg:#f4fbfb;
+            --card:#ffffff;
+            --muted:#627d98;
+            --coral:#e76f51;
+            --line:#d9e2ec;
+            --nav:#0b2032;
+        }
+        * { box-sizing:border-box; }
+        body {
+            margin:0;
+            font-family:"Segoe UI",sans-serif;
+            color:var(--ink);
+            background:linear-gradient(180deg,#fefaf0 0%, var(--bg) 100%);
+        }
+        .layout { min-height:100vh; display:grid; grid-template-columns:280px 1fr; }
+        .sidebar {
+            background:linear-gradient(180deg, #0b2032 0%, #12314a 100%);
+            color:#fff;
+            padding:28px 22px;
+            position:sticky;
+            top:0;
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+            gap:24px;
+        }
+        .brand {
+            display:grid;
+            gap:10px;
+            padding-bottom:20px;
+            border-bottom:1px solid rgba(255,255,255,.14);
+        }
+        .brand-badge {
+            width:52px;
+            height:52px;
+            border-radius:18px;
+            display:grid;
+            place-items:center;
+            background:linear-gradient(135deg,var(--teal),var(--sun));
+            color:#fff;
+            font-weight:900;
+        }
+        .brand small, .side-note { color:rgba(255,255,255,.72); }
+        .side-nav { display:grid; gap:10px; }
+        .side-link {
+            text-decoration:none;
+            color:#fff;
+            border:1px solid rgba(255,255,255,.1);
+            background:rgba(255,255,255,.05);
+            border-radius:16px;
+            padding:12px 14px;
+            font-weight:700;
+        }
+        .side-link.cta { background:linear-gradient(135deg,var(--teal),#14b8a6); border:0; }
+        .content { padding:28px; }
+        .head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:24px; }
+        .head h1 { margin:0; font-size:2.2rem; }
+        .muted { color:var(--muted); line-height:1.65; }
+        .actions { display:flex; flex-wrap:wrap; gap:12px; }
+        .btn { text-decoration:none; padding:11px 16px; border-radius:14px; font-weight:700; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .btn-primary { background:var(--teal); color:#fff; }
+        .btn-secondary { background:#fff; color:var(--ink); border:1px solid rgba(16,42,67,.1); }
+        .btn-warning { background:var(--sun); color:var(--ink); }
+        .btn-danger { background:var(--coral); color:#fff; }
+        .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); margin-bottom:24px; }
+        .card, .section-card {
+            background:var(--card);
+            border-radius:24px;
+            padding:22px;
+            box-shadow:0 14px 34px rgba(16,42,67,.08);
+            border:1px solid rgba(16,42,67,.08);
+        }
+        .stat { font-size:2rem; font-weight:900; color:var(--teal); }
+        .stack { display:grid; gap:18px; }
+        .section-title { margin:0 0 14px; font-size:1.45rem; }
+        .table-shell { overflow:auto; }
+        table { width:100%; min-width:880px; border-collapse:collapse; background:#fff; }
+        th, td { padding:14px 12px; text-align:left; border-bottom:1px solid #e6edf3; vertical-align:top; }
+        th { background:#102a43; color:#fff; position:sticky; top:0; }
+        .table-actions { display:flex; flex-wrap:wrap; gap:8px; }
+        .tag { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(15,118,110,.12); color:var(--teal); font-weight:800; font-size:.86rem; }
+        .mobile-nav { display:none; }
+        @media (max-width: 980px) {
+            .layout { grid-template-columns:1fr; }
+            .sidebar { display:none; }
+            .mobile-nav { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+            .content { padding:20px; }
+            .head { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="./Back Office marathonsfinall_files/logo_barchathon.jpg" width="50" height="50">
+                <div>
+                    <strong>Espace organisateur</strong><br>
+                    <small>Organisateur Demo - organisateur</small>
+                </div>
+            </div>
+
+            <nav class="side-nav">
+                <a class="side-link" href="http://localhost/MARATHONS/View/BackOffice/listMarathons.php#marathons">Mes marathons</a>
+                
+                                    <a class="side-link cta" href="http://localhost/MARATHONS/View/BackOffice/addMarathon.php">Ajouter marathon</a>
+                                <a class="side-link" href="http://localhost/MARATHONS/View/BackOffice/listMarathons.php?action=logout">Se deconnecter</a>
+            </nav>
+
+
+            <a href="http://localhost/MARATHONS/View/FrontOffice/listBooks.php" style="
+       color: white;
+       text-decoration: underline;
+       position: absolute;
+       top: 400px;
+       right: 20px;
+   ">
+    Catalogue
+</a>
+        </aside>
+
+        <main class="content">
+            <div class="mobile-nav">
+                <a class="btn btn-secondary" href="http://localhost/MARATHONS/View/FrontOffice/listMarathons.php">Catalogue front</a>
+                <a class="btn btn-primary" href="http://localhost/MARATHONS/View/BackOffice/addMarathon.php">Ajouter marathon</a>
+                <a class="btn btn-secondary" href="http://localhost/MARATHONS/View/BackOffice/listMarathons.php?action=logout">Se deconnecter</a>
+            </div>
+
+            <div class="head">
+                <div>
+                    <h1>Mes marathons</h1>
+                    <div class="muted">
+                                                    Espace organisateur pour ajouter, modifier et supprimer uniquement vos marathons.
+                                            </div>
+                </div>
+                <div class="actions">
+                                            <span class="tag">Vue organisateur</span>
+                                    </div>
+            </div>
+
+            
+            <div class="stack">
+                
+                <section class="section-card" id="marathons">
+                    <h2 class="section-title">Mes marathons</h2>
+                    <div class="table-shell">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Marathon</th>
+                                    <th>Région</th>
+                                    <th>Date</th>
+                                    
+                                    
+                                    <th>Places</th>
+                                    
+                                    <th>Organisateur</th>
+                                    <th>Prix</th>
+                                    <th>Actions</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                                                                                            <tr>
+                                            <td>1</td>
+                                            <td>Marathon de Tunis Medina</td>
+                                            <td>Tunis</td>
+                                            <td>2026-05-18</td>
+                                            
+                                            
+                                            <td>240</td>
+                                            
+                                            <td>Run Tunisia Events</td>
+                                            <td>65.00 TND</td>
+                                            
+                                            <td>
+                                                <div class="table-actions">
+                                                                                                            <a class="btn btn-secondary" href="http://localhost/MARATHONS/View/BackOffice/manageMarathon.php?id=1">Parcours et stands</a>
+                                                        <a class="btn btn-warning" href="http://localhost/MARATHONS/View/BackOffice/updateMarathon.php?id=1">Modifier</a>
+                                                                                                                                                                <a class="btn btn-danger" href="http://localhost/MARATHONS/View/BackOffice/listMarathons.php?delete=1" onclick="return confirm(&#39;Supprimer ce marathon ?&#39;);">Supprimer</a>
+                                                                                                    </div>
+                                            </td>
+                                        </tr>
+                                                                            <tr>
+                                            <td>2</td>
+                                            <td>Semi Marathon de Sousse Corniche</td>
+                                            <td>Sousse</td>
+                                            <td>2026-06-08</td>
+                                            
+                                            
+                                            <td>120</td>
+                                            
+                                            <td>Ocean Pace Club</td>
+                                            <td>48.00 TND</td>
+                                            
+                                            <td>
+                                                <div class="table-actions">
+                                                                                                            <a class="btn btn-secondary" href="http://localhost/MARATHONS/View/BackOffice/manageMarathon.php?id=2">Parcours et stands</a>
+                                                        <a class="btn btn-warning" href="http://localhost/MARATHONS/View/BackOffice/updateMarathon.php?id=2">Modifier</a>
+                                                                                                                                                                <a class="btn btn-danger" href="http://localhost/MARATHONS/View/BackOffice/listMarathons.php?delete=2" onclick="return confirm(&#39;Supprimer ce marathon ?&#39;);">Supprimer</a>
+                                                                                                    </div>
+                                            </td>
+                                        </tr>
+                                                                                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                            </div>
+        </main>
+    </div>
+
+
+</body></html>

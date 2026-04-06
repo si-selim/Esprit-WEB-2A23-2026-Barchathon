@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier le marathon #1</title>
+    <style>
+        :root {
+            --ink: #102a43;
+            --teal: #0f766e;
+            --bg: #f8fcfc;
+            --card: #ffffff;
+            --sand: #fff8e7;
+            --slate: #627d98;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background: linear-gradient(180deg, var(--sand), var(--bg));
+            min-height: 100vh;
+        }
+        .wrap { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 46px; }
+        
+        /* Panneau principal */
+        .panel { 
+            background: var(--card); 
+            border-radius: 28px; 
+            padding: 35px; 
+            box-shadow: 0 18px 40px rgba(16, 42, 67, 0.08); 
+            border: 1px solid rgba(16, 42, 67, 0.08); 
+        }
+
+        h1 { margin: 0 0 24px 0; font-size: 2.2rem; color: var(--ink); }
+
+        /* Grille des champs */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, minmax(0, 1fr)); 
+            gap: 20px; 
+        }
+
+        .field { display: grid; gap: 8px; }
+        
+        label { font-weight: 700; font-size: 0.95rem; }
+
+        input, select, textarea { 
+            width: 100%; 
+            border-radius: 14px; 
+            border: 1px solid #cbd5e1; 
+            padding: 12px 14px; 
+            font: inherit; 
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--teal);
+        }
+
+        .info-text {
+            font-size: 0.88rem;
+            color: var(--slate);
+            margin-top: -4px;
+        }
+
+        /* Boutons d'action */
+        .actions { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-top: 30px; 
+        }
+
+        .btn { 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 14px; 
+            padding: 12px 22px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.9; }
+
+        .btn-primary { background: var(--teal); color: white; }
+        .btn-secondary { background: #edf2f7; color: var(--ink); }
+
+        @media (max-width: 700px) { 
+            .grid { grid-template-columns: 1fr; } 
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="panel">
+            <h1>Modifier le marathon #1</h1>
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="grid">
+
+                    <div class="field">
+                        <label for="ID_Marathon">ID du marathon</label>
+                        <input type="number" id="ID_Marathon" name="ID_Marathon" value="1" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="Nom_Marathon">Nom du marathon</label>
+                        <input type="text" id="Nom_Marathon" name="Nom_Marathon" value="Marathon de Tunis Medina" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="Région_Marathon">Région</label>
+                        <input type="text" id="Région_Marathon" name="Région_Marathon" value="Tunis" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="Date_Marathon">Date</label>
+                        <input type="date" id="Date_Marathon" name="Date_Marathon" value="2026-05-18" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="places">Places disponibles</label>
+                        <input type="number" id="places" name="places" min="1" value="240" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="organisateur">Organisateur</label>
+                        <input type="text" id="organisateur" name="organisateur" value="Run Tunisia Events" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="Prix">Prix inscription (TND)</label>
+                        <input type="number" id="Prix" name="Prix" min="0" step="1" value="65" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="photo">Changer la photo du marathon</label>
+                        <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png,.webp">
+                        <div class="info-text">Image actuelle : <strong>product-item1.jpg</strong></div>
+                    </div>
+
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                    <a href="manageSponsors.php?id=1" class="btn btn-secondary">Ajouter un sponsor</a>
+                    <a href="listMarathons.php" class="btn btn-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
