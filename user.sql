@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `tel`                VARCHAR(20)    DEFAULT NULL,
     `occupation`         VARCHAR(100)   DEFAULT NULL,
     `date_de_naissance`  DATE           DEFAULT NULL,
+    `role`               ENUM('admin', 'participant', 'organisateur') NOT NULL DEFAULT 'participant',
     PRIMARY KEY (`id_user`),
     UNIQUE KEY `uk_nom_user` (`nom_user`)
 );
