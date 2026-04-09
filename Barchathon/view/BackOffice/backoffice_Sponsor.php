@@ -75,19 +75,27 @@
         .section-actions { margin-top:16px; display:flex; justify-content:flex-end; }
         .section-note { font-size:.95rem; color:var(--muted); margin-top:6px; }
         .mobile-nav { display:none; }
-        @media (max-width: 980px) {
-            .layout { grid-template-columns:1fr; }
-            .sidebar { display:none; }
-            .mobile-nav { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
-            .content { padding:20px; }
-            .head { flex-direction:column; }
-            .toolbar { flex-direction:column; align-items:flex-start; }
-            .search-box, .filter-group { width:100%; }
-            table { min-width:720px; }
-        }
+        .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:12px; border:1px solid rgba(16,42,67,.12); background:#fff; color:var(--ink); cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+        .icon-btn:hover { transform:translateY(-1px); box-shadow:0 10px 18px rgba(16,42,67,.12); }
+        .icon-delete { color:#d92d20; border-color:rgba(217,45,32,.15); }
+        .icon-delete::before { content:"🗑"; font-size:1rem; }
+        .row-actions { display:flex; gap:10px; }
+        .icon-edit { color:#d97706; border-color:rgba(217,119,6,.18); }
+        .icon-edit::before { content:"✏"; font-size:1rem; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:24px; z-index:9999; }
+        .modal-overlay.active { display:flex; }
+        .modal { width:min(500px,100%); background:#fff; border-radius:24px; padding:28px; box-shadow:0 24px 50px rgba(16,42,67,.2); }
+        .modal h3 { margin:0 0 14px; font-size:1.4rem; color:var(--ink); }
+        .modal p { margin:0 0 22px; color:var(--muted); line-height:1.6; }
+        .modal-actions { display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap; }
+        .modal-actions .btn { min-width:120px; }
+        .modal-actions .btn-secondary { background:#f0f4f8; color:var(--ink); }
+        .modal-actions .btn-danger { background:var(--coral); color:#fff; }
+
     </style>
 </head>
 <body>
+    <?php include '../../controller/sponsorController.php'; include '../../controller/sponsoringController.php'; $controller = new sponsorController(); $sController = new sponsoringController(); ?>
     <div class="layout">
         <aside class="sidebar">
             <div class="brand">
@@ -98,8 +106,8 @@
                 </div>
             </div>
             <nav class="side-nav">
-                <a class="side-link" href="dashboard.html">Dashboard</a>
-                <a class="side-link active" href="backoffice_Sponsor.html">Sponsors</a>
+                <a class="side-link" href="dashboard.php">Dashboard</a>
+                <a class="side-link active" href="backoffice_Sponsor.php">Sponsors</a>
                 <a class="side-link" href="#">Marathons</a>
                 <a class="side-link" href="#">Participants</a>
                 <a class="side-link" href="#">Paramètres</a>
@@ -110,8 +118,8 @@
         </aside>
         <main class="content">
             <div class="mobile-nav">
-                <a class="btn btn-secondary" href="dashboard.html">Dashboard</a>
-                <a class="btn btn-primary" href="backoffice_Sponsor.html">Sponsors</a>
+                <a class="btn btn-secondary" href="dashboard.php">Dashboard</a>
+                <a class="btn btn-primary" href="backoffice_Sponsor.php">Sponsors</a>
             </div>
             <div class="head">
                 <div>
@@ -126,75 +134,40 @@
             <section class="section-card">
                 <h2 class="section-title">Sponsors</h2>
                 <div class="toolbar">
-                    <div class="search-box">
-                        <input type="search" placeholder="Rechercher un sponsor, un email ou une adresse">
+                    <div class="toolbar-left">
+                        <div class="search-box">
+                            <input type="search" placeholder="rechercher par nom">
+                        </div>
                     </div>
-                    <div class="filter-group">
-                        <label>
-                            Filtrer par type
-                            <select>
-                                <option>Tout</option>
-                                <option>Or</option>
-                                <option>Argent</option>
-                                <option>Bronze</option>
-                            </select>
-                        </label>
-                        <label>
-                            Filtrer par pays
-                            <select>
-                                <option>Tout</option>
-                                <option>France</option>
-                                <option>Belgique</option>
-                                <option>Maroc</option>
-                            </select>
-                        </label>
+                    <div class="toolbar-right">
+                        <div class="filter-group">
+                            <label>
+                                Filtrer ordre alphabétique
+                                <select>
+                                    <option>A-Z</option>
+                                    <option>Z-A</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="table-shell">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Actions</th>
+                                <th>id Organisateur</th>
+                                <th>id Sponsor</th>
                                 <th>Nom</th>
                                 <th>Type</th>
-                                <th>Adresse</th>
+                                <th style="width: 500px;">Adresse</th>
                                 <th>Contact</th>
                                 <th>Email</th>
-                                <th>Logo</th>
                                 <th>PageWeb</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>101</td>
-                                <td>GreenFit</td>
-                                <td>Or</td>
-                                <td>23 rue des Lilas, Lyon</td>
-                                <td>0612345678</td>
-                                <td>contact@greenfit.fr</td>
-                                <td>greenfit.svg</td>
-                                <td>greenfit.fr</td>
-                            </tr>
-                            <tr>
-                                <td>102</td>
-                                <td>RunWear</td>
-                                <td>Argent</td>
-                                <td>14 avenue du Stade, Paris</td>
-                                <td>0678123456</td>
-                                <td>support@runwear.com</td>
-                                <td>runwear.png</td>
-                                <td>runwear.com</td>
-                            </tr>
-                            <tr>
-                                <td>103</td>
-                                <td>MedikPro</td>
-                                <td>Bronze</td>
-                                <td>8 Boulevard de la Santé, Lille</td>
-                                <td>0645781230</td>
-                                <td>info@medikpro.fr</td>
-                                <td>medikpro.jpg</td>
-                                <td>medikpro.fr</td>
-                            </tr>
+                            <?php $controller->afficherSponsor(false, true); ?>
                         </tbody>
                     </table>
                 </div>
@@ -203,6 +176,18 @@
                 </div>
                 <div class="section-note">Affichage statique de la table des sponsors. Les actions de modification sont désactivées.</div>
             </section>
+
+            <div class="modal-overlay" id="deleteModal">
+                <div class="modal">
+                    <h3>Confirmer la suppression</h3>
+                    <p id="deleteMessage">Êtes-vous sûr de vouloir supprimer ce sponsor ?</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="cancelDelete">Annuler</button>
+                        <button class="btn btn-danger" id="confirmDelete">Confirmer</button>
+                    </div>
+                </div>
+            </div>
+
             <section class="section-card" style="margin-top:24px;">
                 <h2 class="section-title">Sponsoring</h2>
                 <div class="toolbar">
@@ -234,39 +219,19 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Actions</th>
                                 <th>#</th>
                                 <th>Nom Sponsoring</th>
                                 <th>Date début</th>
                                 <th>Date fin</th>
                                 <th>Montant</th>
                                 <th>État</th>
+                                <th>id Sponsor</th>
+                                <th>id Marathon</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>201</td>
-                                <td>Pack Performance</td>
-                                <td>2026-04-01</td>
-                                <td>2026-10-01</td>
-                                <td>12000,00 €</td>
-                                <td>Actif</td>
-                            </tr>
-                            <tr>
-                                <td>202</td>
-                                <td>Partenariat Médical</td>
-                                <td>2026-03-15</td>
-                                <td>2026-04-30</td>
-                                <td>5000,00 €</td>
-                                <td>Terminé</td>
-                            </tr>
-                            <tr>
-                                <td>203</td>
-                                <td>Visibilité Or</td>
-                                <td>2026-05-10</td>
-                                <td>2026-11-10</td>
-                                <td>18000,00 €</td>
-                                <td>Planifié</td>
-                            </tr>
+                            <?php $sController->afficherSponsoring(false, true, false); ?>
                         </tbody>
                     </table>
                 </div>
@@ -307,6 +272,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Actions</th>
                                 <th>#</th>
                                 <th>Type</th>
                                 <th>Nom fourniture</th>
@@ -318,6 +284,10 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>
+                                    <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
+                                    <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
+                                </td>
                                 <td>301</td>
                                 <td>Nourritures</td>
                                 <td>Barres énergétiques</td>
@@ -327,6 +297,10 @@
                                 <td>2026-04-10</td>
                             </tr>
                             <tr>
+                                <td>
+                                    <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
+                                    <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
+                                </td>
                                 <td>302</td>
                                 <td>Vêtements</td>
                                 <td>T-shirts officiels</td>
@@ -336,6 +310,10 @@
                                 <td>2026-04-18</td>
                             </tr>
                             <tr>
+                                <td>
+                                    <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
+                                    <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
+                                </td>
                                 <td>303</td>
                                 <td>Matériel médical</td>
                                 <td>Trousse premiers secours</td>
@@ -354,5 +332,40 @@
             </section>
         </main>
     </div>
+
+    <script>
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteMessage = document.getElementById('deleteMessage');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+        let deleteHref = null;
+
+        document.querySelectorAll('.delete-sponsor-btn, .delete-sponsoring-btn').forEach(button => {
+            button.addEventListener('click', event => {
+                event.preventDefault();
+                deleteHref = button.getAttribute('href');
+                const itemName = button.dataset.sponsorName || button.dataset.sponsoringName || 'cet élément';
+                deleteMessage.textContent = `Êtes-vous sûr de vouloir supprimer ${itemName} ?`;
+                deleteModal.classList.add('active');
+            });
+        });
+
+        cancelDelete.addEventListener('click', () => {
+            deleteHref = null;
+            deleteModal.classList.remove('active');
+        });
+
+        confirmDelete.addEventListener('click', () => {
+            if (deleteHref) {
+                window.location.href = deleteHref;
+            }
+        });
+
+        deleteModal.addEventListener('click', event => {
+            if (event.target === deleteModal) {
+                deleteModal.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>

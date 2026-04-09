@@ -90,7 +90,7 @@
             </div>
             <nav class="side-nav">
                 <a class="side-link active" href="dashboard.html">Dashboard</a>
-                <a class="side-link" href="backoffice_Sponsor.html">Sponsors</a>
+                <a class="side-link" href="backoffice_Sponsor.php">Sponsors</a>
                 <a class="side-link" href="#">Marathons</a>
                 <a class="side-link" href="#">Participants</a>
                 <a class="side-link" href="#">Rapports</a>
@@ -102,7 +102,7 @@
         <main class="content">
             <div class="mobile-nav">
                 <a class="btn btn-primary" href="dashboard.html">Dashboard</a>
-                <a class="btn btn-secondary" href="backoffice_Sponsor.html">Sponsors</a>
+                <a class="btn btn-secondary" href="backoffice_Sponsor.php">Sponsors</a>
             </div>
             <div class="head">
                 <div>

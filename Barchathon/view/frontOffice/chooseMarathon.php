@@ -36,6 +36,9 @@
         <div class="card">
             <h1>Choisir un marathon</h1>
             <p>Sélectionnez le marathon sponsorisé. Une fois votre choix effectué, retournez au formulaire pour compléter les informations.</p>
+            <?php
+            $idSponsor = isset($_GET['idSponsor']) ? $_GET['idSponsor'] : null;
+            ?>
             <div class="table-shell">
                 <table>
                     <thead>
@@ -44,36 +47,16 @@
                             <th>Marathon</th>
                             <th>Ville</th>
                             <th>Date</th>
-                            <th>Distance</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>401</td>
-                            <td>Marathon de Tunis</td>
-                            <td>Tunis</td>
-                            <td>2026-06-12</td>
-                            <td>42 km</td>
-                        </tr>
-                        <tr>
-                            <td>402</td>
-                            <td>Run by the Sea</td>
-                            <td>La Goulette</td>
-                            <td>2026-07-18</td>
-                            <td>21 km</td>
-                        </tr>
-                        <tr>
-                            <td>403</td>
-                            <td>Trail des Dunes</td>
-                            <td>Hammamet</td>
-                            <td>2026-08-20</td>
-                            <td>15 km</td>
-                        </tr>
+                        <?php include '../../controller/sponsoringController.php'; $controller = new sponsoringController(); $extraParams = $idSponsor ? "&idSponsor=$idSponsor" : ''; $controller->afficherMarathon(true, $extraParams); ?>
                     </tbody>
                 </table>
             </div>
             <div class="actions">
-                <a class="btn btn-secondary" href="addSponsoring.html">Retour au formulaire</a>
+                <a class="btn btn-secondary" href="addSponsoring.php<?php echo $idSponsor ? '?idSponsor=' . $idSponsor : ''; ?>">Retour au formulaire</a>
             </div>
         </div>
     </div>

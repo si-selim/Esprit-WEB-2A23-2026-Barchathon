@@ -55,6 +55,15 @@
         td .row-actions button { min-width:42px; }
         .tag { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(15,118,110,.12); color:var(--teal); font-weight:800; font-size:.86rem; }
         .note { font-size:.95rem; color:var(--muted); margin-top:12px; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:24px; z-index:9999; }
+        .modal-overlay.active { display:flex; }
+        .modal { width:min(500px,100%); background:#fff; border-radius:24px; padding:28px; box-shadow:0 24px 50px rgba(16,42,67,.2); }
+        .modal h3 { margin:0 0 14px; font-size:1.4rem; color:var(--ink); }
+        .modal p { margin:0 0 22px; color:var(--muted); line-height:1.6; }
+        .modal-actions { display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap; }
+        .modal-actions .btn { min-width:120px; }
+        .modal-actions .btn-secondary { background:#f0f4f8; color:var(--ink); }
+        .modal-actions .btn-danger { background:var(--coral); color:#fff; }
         @media (max-width: 980px) {
             .page { padding:20px 0 40px; }
             .toolbar { flex-direction:column; align-items:flex-start; }
@@ -65,19 +74,20 @@
     </style>
 </head>
 <body>
+    <?php include '../../controller/sponsorController.php'; include '../../controller/sponsoringController.php'; $controller = new sponsorController(); $sController = new sponsoringController(); ?>
     <div class="page">
         <div class="section-title">
             <div>
                 <h1>Gérer mes sponsors</h1>
                 <span>Consultez et modifiez vos sponsors, sponsoring et fournitures en tant qu'organisateur.</span>
             </div>
-            <a class="btn btn-secondary" href="">Retour au catalogue</a>
+            <a class="btn btn-secondary" href="mesSponsors.php">Retour au catalogue</a>
         </div>
 
         <section id="sponsors" class="section-card">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <a class="btn btn-primary" href="addSponsor.html" title="Ajouter un sponsor">
+                    <a class="btn btn-primary" href="addSponsor.php" title="Ajouter un sponsor">
                         <span>+</span> Ajouter
                     </a>
                 </div>
@@ -105,68 +115,14 @@
                             <th>#</th>
                             <th>Nom</th>
                             <th>Type</th>
-                            <th>Adresse</th>
+                            <th style="width: 500px;">Adresse</th>
                             <th>Contact</th>
                             <th>Email</th>
-                            <th>Logo</th>
                             <th>PageWeb</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
-                                <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsor.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>101</td>
-                            <td>GreenFit</td>
-                            <td>Or</td>
-                            <td>23 rue des Lilas, Lyon</td>
-                            <td>0612345678</td>
-                            <td>contact@greenfit.fr</td>
-                            <td>greenfit.svg</td>
-                            <td>greenfit.fr</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
-                                <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsor.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>102</td>
-                            <td>RunWear</td>
-                            <td>Argent</td>
-                            <td>14 avenue du Stade, Paris</td>
-                            <td>0678123456</td>
-                            <td>support@runwear.com</td>
-                            <td>runwear.png</td>
-                            <td>runwear.com</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="#sponsoring" class="btn btn-secondary">Voir sponsoring</a>
-                                <a href="#fournitures" class="btn btn-secondary">Voir fourniture</a>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsor.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>103</td>
-                            <td>MedikPro</td>
-                            <td>Bronze</td>
-                            <td>8 Boulevard de la Santé, Lille</td>
-                            <td>0645781230</td>
-                            <td>info@medikpro.fr</td>
-                            <td>medikpro.jpg</td>
-                            <td>medikpro.fr</td>
-                        </tr>
+                        <?php $controller->afficherSponsor(); ?>
                     </tbody>
                 </table>
             </div>
@@ -177,7 +133,7 @@
         <section id="sponsoring" class="section-card">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <a class="btn btn-primary" href="addSponsoring.html" title="Ajouter un sponsoring">
+                    <a class="btn btn-primary" href="addSponsoring.php" title="Ajouter un sponsoring">
                         <span>+</span> Ajouter
                     </a>
                 </div>
@@ -238,51 +194,12 @@
                             <th>Date fin</th>
                             <th>Montant</th>
                             <th>État</th>
+                            <th>id Sponsor</th>
+                            <th>id Marathon</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsoring.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>201</td>
-                            <td>Pack Performance</td>
-                            <td>2026-04-01</td>
-                            <td>2026-10-01</td>
-                            <td>12 000,00 €</td>
-                            <td>Actif</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsoring.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>202</td>
-                            <td>Partenariat Médical</td>
-                            <td>2026-03-15</td>
-                            <td>2026-04-30</td>
-                            <td>5 000,00 €</td>
-                            <td>Terminé</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row-actions">
-                                    <button class="icon-btn icon-delete" title="Supprimer"></button>
-                                    <a href="modifySponsoring.html" class="icon-btn icon-edit" title="Modifier"></a>
-                                </div>
-                            </td>
-                            <td>203</td>
-                            <td>Visibilité Or</td>
-                            <td>2026-05-10</td>
-                            <td>2026-11-10</td>
-                            <td>18 000,00 €</td>
-                            <td>Annulé</td>
-                        </tr>
+                        <?php $sController->afficherSponsoring(true, false, false); ?>
                     </tbody>
                 </table>
             </div>
@@ -411,5 +328,51 @@
             <p class="note">Le tableau de fournitures contient les détails de marchandise et le bouton d'ajout mène au formulaire statique.</p>
         </section>
     </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <h3>Confirmer la suppression</h3>
+            <p id="deleteMessage">Êtes-vous sûr de vouloir supprimer ce sponsor ?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelDelete">Annuler</button>
+                <button class="btn btn-danger" id="confirmDelete">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteMessage = document.getElementById('deleteMessage');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+        let deleteHref = null;
+
+        document.querySelectorAll('.delete-sponsor-btn, .delete-sponsoring-btn').forEach(button => {
+            button.addEventListener('click', event => {
+                event.preventDefault();
+                deleteHref = button.getAttribute('href');
+                const itemName = button.dataset.sponsorName || button.dataset.sponsoringName || 'cet élément';
+                deleteMessage.textContent = `Êtes-vous sûr de vouloir supprimer ${itemName} ?`;
+                deleteModal.classList.add('active');
+            });
+        });
+
+        cancelDelete.addEventListener('click', () => {
+            deleteHref = null;
+            deleteModal.classList.remove('active');
+        });
+
+        confirmDelete.addEventListener('click', () => {
+            if (deleteHref) {
+                window.location.href = deleteHref;
+            }
+        });
+
+        deleteModal.addEventListener('click', event => {
+            if (event.target === deleteModal) {
+                deleteModal.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
