@@ -6,14 +6,14 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creer un compte participant</title>
+    <title>Creer un compte</title>
     <link rel="stylesheet" href="../view/assets/css/style.css">
 </head>
 <body>
     <div class="page">
         <div class="card-form fade-in">
-            <h1>Creer un compte participant</h1>
-            <p>Formulaire d inscription pour creer un nouveau compte participant.</p>
+            <h1>Creer un compte</h1>
+            <p>Formulaire d inscription pour creer un nouveau compte.</p>
             <?php if (!empty($_GET['error'])): ?>
                 <div class="error-msg"><?= htmlspecialchars($_GET['error']) ?></div>
             <?php endif; ?>
@@ -30,6 +30,13 @@ session_start();
                     <div class="field">
                         <label for="password">Mot de passe</label>
                         <input id="password" name="mot_de_passe" type="password" placeholder="Mot de passe" required minlength="6">
+                    </div>
+                    <div class="field">
+                        <label for="role">Role</label>
+                        <select id="role" name="role" required>
+                            <option value="participant">Participant</option>
+                            <option value="organisateur">Organisateur</option>
+                        </select>
                     </div>
                     <div class="field">
                         <label for="age">Age</label>

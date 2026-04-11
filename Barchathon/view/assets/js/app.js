@@ -1,16 +1,25 @@
 document.addEventListener('DOMContentLoaded', function () {
+    injectBackgroundLayers();
+
+    var staggerIndex = 0;
     var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
             if (entry.isIntersecting) {
+                var delay = staggerIndex * 0.08;
+                entry.target.style.animationDelay = delay + 's';
                 entry.target.classList.add('visible');
+                staggerIndex++;
                 observer.unobserve(entry.target);
+                setTimeout(function () { staggerIndex = Math.max(0, staggerIndex - 1); }, 400);
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-    document.querySelectorAll('.fade-in, .slide-up').forEach(function (el) {
+    document.querySelectorAll('.fade-in, .slide-up, .slide-left, .slide-right').forEach(function (el) {
         observer.observe(el);
     });
+
+    assignStaggerClasses();
 
     document.querySelectorAll('[data-modal-close]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -49,7 +58,70 @@ document.addEventListener('DOMContentLoaded', function () {
     if (params.get('error')) {
         showFeedback(decodeURIComponent(params.get('error')), 'error');
     }
+
+    initTiltEffect();
+    initParallaxOrbs();
 });
+
+function injectBackgroundLayers() {
+    if (document.querySelector('.bg-orbs')) return;
+    var orbs = document.createElement('div');
+    orbs.className = 'bg-orbs';
+    document.body.insertBefore(orbs, document.body.firstChild);
+
+    var grid = document.createElement('div');
+    grid.className = 'bg-grid';
+    document.body.insertBefore(grid, document.body.firstChild);
+
+    var noise = document.createElement('div');
+    noise.className = 'bg-noise';
+    document.body.insertBefore(noise, document.body.firstChild);
+}
+
+function assignStaggerClasses() {
+    var groups = document.querySelectorAll('.info-grid, .stats-grid, .form-grid, .chart-grid, .report-list');
+    groups.forEach(function (group) {
+        var children = group.children;
+        for (var i = 0; i < children.length && i < 8; i++) {
+            children[i].classList.add('stagger-' + (i + 1));
+        }
+    });
+}
+
+function initTiltEffect() {
+    var cards = document.querySelectorAll('.card-hover, .card-form, .info-card');
+    cards.forEach(function (card) {
+        card.addEventListener('mousemove', function (e) {
+            var rect = card.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var centerX = rect.width / 2;
+            var centerY = rect.height / 2;
+            var rotateX = (y - centerY) / centerY * -4;
+            var rotateY = (x - centerX) / centerX * 4;
+            card.style.transform = 'perspective(800px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateY(-4px) scale(1.02)';
+        });
+        card.addEventListener('mouseleave', function () {
+            card.style.transform = '';
+        });
+    });
+}
+
+function initParallaxOrbs() {
+    var orbs = document.querySelector('.bg-orbs');
+    if (!orbs) return;
+    var ticking = false;
+    document.addEventListener('mousemove', function (e) {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+            var x = (e.clientX / window.innerWidth - 0.5) * 20;
+            var y = (e.clientY / window.innerHeight - 0.5) * 20;
+            orbs.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+            ticking = false;
+        });
+    });
+}
 
 function validateForm(form) {
     var nom = form.querySelector('input[name="nom_complet"]');

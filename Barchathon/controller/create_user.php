@@ -18,6 +18,10 @@ $pays = trim($_POST['pays'] ?? '') ?: null;
 $ville = trim($_POST['ville'] ?? '') ?: null;
 $tel = trim($_POST['tel'] ?? '') ?: null;
 $occupation = trim($_POST['occupation'] ?? '') ?: null;
+$role = $_POST['role'] ?? 'participant';
+if (!in_array($role, ['participant', 'organisateur'])) {
+    $role = 'participant';
+}
 
 if ($nom_complet === '' || $nom_user === '' || $mot_de_passe === '' || $email === '') {
     header('Location: register.php?error=' . urlencode('Veuillez remplir tous les champs obligatoires.'));
@@ -93,8 +97,8 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
 $hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
 
 try {
-    $stmt = $pdo->prepare("INSERT INTO `user` (nom_complet, nom_user, mot_de_passe, age, poids, taille, email, pays, ville, tel, occupation, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nom_complet, $nom_user, $hash, $age, $poids, $taille, $email, $pays, $ville, $tel, $occupation, $profile_picture]);
+    $stmt = $pdo->prepare("INSERT INTO `user` (nom_complet, nom_user, mot_de_passe, age, poids, taille, email, pays, ville, tel, occupation, profile_picture, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nom_complet, $nom_user, $hash, $age, $poids, $taille, $email, $pays, $ville, $tel, $occupation, $profile_picture, $role]);
     header('Location: login.php?success=' . urlencode('Compte cree avec succes.'));
 } catch (PDOException $e) {
     if ($e->getCode() == 23000) {
