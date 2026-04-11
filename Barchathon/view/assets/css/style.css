@@ -488,13 +488,16 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .filter-group select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13, 148, 136, .08); }
 
+.sort-link { color: var(--muted); text-decoration: none; transition: color 0.3s ease; white-space: nowrap; }
+.sort-link:hover { color: var(--teal); }
 .table-shell { overflow-x: auto; border-radius: 16px; border: 1px solid var(--card-border); }
 .section-note { color: var(--muted); font-size: .85rem; margin-top: 16px; text-align: center; font-weight: 300; }
 
 .user-thumb {
     width: 36px; height: 36px; border-radius: 10px; display: inline-grid; place-items: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease; object-fit: cover;
 }
+img.user-thumb { display: inline-block; }
 .user-thumb:hover { transform: scale(1.15) rotate(3deg); }
 
 .modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }

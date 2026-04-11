@@ -11,6 +11,15 @@ require_once __DIR__ . '/read_users.php';
 
 $paysStmt = $pdo->query("SELECT DISTINCT pays FROM `user` WHERE pays IS NOT NULL AND pays != '' ORDER BY pays");
 $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
+
+function sortUrl($col, $search, $roleFilter, $paysFilter, $sortBy, $sortDir) {
+    $dir = ($sortBy === $col && $sortDir === 'ASC') ? 'desc' : 'asc';
+    return '?sort=' . $col . '&dir=' . $dir . '&search=' . urlencode($search) . '&role=' . urlencode($roleFilter) . '&pays=' . urlencode($paysFilter);
+}
+function sortArrow($col, $sortBy, $sortDir) {
+    if ($sortBy !== $col) return '';
+    return $sortDir === 'ASC' ? ' &#9650;' : ' &#9660;';
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -53,8 +62,8 @@ $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
                     <div class="muted">Vue administrative pour consulter et gerer les utilisateurs. <?= $totalUsers ?> utilisateur(s) au total.</div>
                 </div>
                 <div class="actions">
+                    <a class="btn btn-secondary" style="padding:8px 16px;font-size:.85rem;" href="export_users.php?search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>">Exporter CSV</a>
                     <span class="tag"><?= $totalUsers ?> utilisateurs</span>
-                    <span class="tag">Backoffice</span>
                 </div>
             </div>
             <section class="section-card fade-in">
@@ -65,6 +74,24 @@ $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
                             <input type="search" name="search" placeholder="Rechercher un utilisateur, un email ou un pays" value="<?= htmlspecialchars($search) ?>">
                         </div>
                         <div class="filter-group">
+                            <label>
+                                Trier par
+                                <select name="sort" onchange="this.form.submit()">
+                                    <option value="">Par defaut</option>
+                                    <option value="nom_complet" <?= $sortBy === 'nom_complet' ? 'selected' : '' ?>>Nom</option>
+                                    <option value="age" <?= $sortBy === 'age' ? 'selected' : '' ?>>Age</option>
+                                    <option value="poids" <?= $sortBy === 'poids' ? 'selected' : '' ?>>Poids</option>
+                                    <option value="taille" <?= $sortBy === 'taille' ? 'selected' : '' ?>>Taille</option>
+                                    <option value="ville" <?= $sortBy === 'ville' ? 'selected' : '' ?>>Ville</option>
+                                </select>
+                            </label>
+                            <label>
+                                Ordre
+                                <select name="dir" onchange="this.form.submit()">
+                                    <option value="asc" <?= $sortDir === 'ASC' ? 'selected' : '' ?>>Croissant</option>
+                                    <option value="desc" <?= $sortDir === 'DESC' ? 'selected' : '' ?>>Decroissant</option>
+                                </select>
+                            </label>
                             <label>
                                 Filtrer par role
                                 <select name="role" onchange="this.form.submit()">
@@ -92,12 +119,12 @@ $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
                             <tr>
                                 <th>#</th>
                                 <th>Photo</th>
-                                <th>Nom</th>
+                                <th><a class="sort-link" href="<?= sortUrl('nom_complet', $search, $roleFilter, $paysFilter, $sortBy, $sortDir) ?>">Nom<?= sortArrow('nom_complet', $sortBy, $sortDir) ?></a></th>
                                 <th>Nom utilisateur</th>
                                 <th>Role</th>
                                 <th>Email</th>
                                 <th>Pays</th>
-                                <th>Ville / zone</th>
+                                <th><a class="sort-link" href="<?= sortUrl('ville', $search, $roleFilter, $paysFilter, $sortBy, $sortDir) ?>">Ville / zone<?= sortArrow('ville', $sortBy, $sortDir) ?></a></th>
                                 <th>Telephone</th>
                                 <th>Occupation</th>
                                 <th>Action</th>
@@ -125,7 +152,8 @@ $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
                                         <td><?= htmlspecialchars($u['ville'] ?? '-') ?></td>
                                         <td><?= htmlspecialchars($u['tel'] ?? '-') ?></td>
                                         <td><?= htmlspecialchars($u['occupation'] ?? '-') ?></td>
-                                        <td>
+                                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <a class="btn btn-secondary" style="padding:8px 12px;font-size:.85rem;" href="edit_user.php?id=<?= $u['id_user'] ?>">Modifier</a>
                                             <button class="btn btn-danger" style="padding:8px 12px;font-size:.85rem;" onclick="showConfirm('Supprimer l\'utilisateur <?= htmlspecialchars(addslashes($u['nom_complet'])) ?> ?', function(){ document.getElementById('del-<?= $u['id_user'] ?>').submit(); });">Supprimer</button>
                                             <form id="del-<?= $u['id_user'] ?>" method="POST" action="delete_user.php" style="display:none;">
                                                 <input type="hidden" name="id_user" value="<?= $u['id_user'] ?>">
@@ -140,17 +168,17 @@ $paysList = $paysStmt->fetchAll(PDO::FETCH_COLUMN);
                 <?php if ($totalPages > 1): ?>
                     <div class="pagination">
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>">Precedent</a>
+                            <a href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>&sort=<?= urlencode($sortBy) ?>&dir=<?= urlencode(strtolower($sortDir)) ?>">Precedent</a>
                         <?php endif; ?>
                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                             <?php if ($i === $page): ?>
                                 <span class="active"><?= $i ?></span>
                             <?php else: ?>
-                                <a href="?page=<?= $i ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>"><?= $i ?></a>
+                                <a href="?page=<?= $i ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>&sort=<?= urlencode($sortBy) ?>&dir=<?= urlencode(strtolower($sortDir)) ?>"><?= $i ?></a>
                             <?php endif; ?>
                         <?php endfor; ?>
                         <?php if ($page < $totalPages): ?>
-                            <a href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>">Suivant</a>
+                            <a href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($roleFilter) ?>&pays=<?= urlencode($paysFilter) ?>&sort=<?= urlencode($sortBy) ?>&dir=<?= urlencode(strtolower($sortDir)) ?>">Suivant</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
