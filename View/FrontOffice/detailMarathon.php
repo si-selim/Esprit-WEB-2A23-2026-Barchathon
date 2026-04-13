@@ -166,7 +166,7 @@ $role = $user['role'] ?? 'visiteur';
             </div>
         </div>
         <div class="detail-img">
-            <img src="<?php echo htmlspecialchars($m['image_marathon']); ?>" alt="<?php echo htmlspecialchars($m['nom_marathon']); ?>" onerror="this.src='images/img1.png'">
+            <img src="<?php echo htmlspecialchars($m['image_marathon']); ?>" alt="<?php echo htmlspecialchars($m['nom_marathon']); ?>" onerror="this.src='images/img1.svg'">
             <span class="img-id">#<?php echo $m['id_marathon']; ?></span>
             <span class="places-badge <?php echo $m['nb_places_dispo']>0?'places-ok':'places-no'; ?>">
                 <?php echo $m['nb_places_dispo']>0 ? '✅ '.$m['nb_places_dispo'].' places' : '❌ Complet'; ?>

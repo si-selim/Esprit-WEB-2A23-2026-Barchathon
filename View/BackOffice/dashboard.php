@@ -69,7 +69,7 @@ $currentPage = 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Dashboard Admin — BarchaThon</title>
-    <link rel="stylesheet" href="/Barchathon/view/assets/css/style.css">
+    <link rel="stylesheet" href="/main/View/assets/css/style.css">
     <style>
         .tag-no { background: rgba(239,68,68,.08); color: var(--coral); border-color: rgba(239,68,68,.15); }
         .tag-easy { background: rgba(16,185,129,.08); color: #059669; border-color: rgba(16,185,129,.15); }
@@ -91,7 +91,7 @@ $currentPage = 'dashboard';
 
 <aside class="sidebar">
     <div class="brand">
-        <img class="brand-badge" src="/Barchathon/view/assets/images/logo_barchathon.jpg" alt="BarchaThon">
+        <img class="brand-badge" src="/main/View/assets/images/logo_barchathon.jpg" alt="BarchaThon">
         <div>
             <strong>BarchaThon</strong><br>
             <small>Admin — <?php echo htmlspecialchars($user['nom']); ?></small>
@@ -287,7 +287,7 @@ $currentPage = 'dashboard';
                         <td><?php echo $u['id_user']; ?></td>
                         <td>
                             <?php if (!empty($u['profile_picture'])): ?>
-                                <img class="user-thumb" src="/Barchathon/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
+                                <img class="user-thumb" src="/main/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
                             <?php else: ?>
                                 <span class="user-thumb"><?php echo mb_strtoupper(mb_substr($u['nom_complet'], 0, 1)); ?></span>
                             <?php endif; ?>
@@ -387,7 +387,7 @@ $currentPage = 'dashboard';
                         <td>
                             <img class="marathon-img"
                                  src="../FrontOffice/<?php echo htmlspecialchars($m2['image_marathon']); ?>"
-                                 onerror="this.src='../FrontOffice/images/img1.png'" alt="">
+                                 onerror="this.src='../FrontOffice/images/img1.svg'" alt="">
                         </td>
                         <td><strong><?php echo htmlspecialchars($m2['nom_marathon']); ?></strong></td>
                         <td><?php echo htmlspecialchars($m2['organisateur_marathon']); ?></td>
@@ -558,7 +558,7 @@ $currentPage = 'dashboard';
     </div>
 </div>
 
-<script src="/Barchathon/view/assets/js/app.js"></script>
+<script src="/main/View/assets/js/app.js"></script>
 <script>
 <?php if ($activeTab === 'marathons'): ?>
 document.getElementById('rM').addEventListener('change', function(){ document.getElementById('fmM').submit(); });

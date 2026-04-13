@@ -89,7 +89,7 @@ $role = $user['role'] ?? 'visiteur';
             </div>
         </div>
         <div class="hero-img">
-            <img src="images/hero_runner.png" alt="Marathon BarchaThon" onerror="this.src='images/img1.png'">
+            <img src="images/hero_runner.png" alt="Marathon BarchaThon" onerror="this.src='images/img1.svg'">
         </div>
     </section>
 

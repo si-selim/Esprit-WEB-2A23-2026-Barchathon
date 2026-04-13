@@ -102,13 +102,13 @@ if (!$user) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier utilisateur</title>
-    <link rel="stylesheet" href="/Barchathon/view/assets/css/style.css">
+    <link rel="stylesheet" href="/main/View/assets/css/style.css">
 </head>
 <body>
     <div class="layout">
         <aside class="sidebar">
             <div class="brand">
-                <img class="brand-badge" src="/Barchathon/view/assets/images/logo_barchathon.jpg" alt="Logo Barchathon">
+                <img class="brand-badge" src="/main/View/assets/images/logo_barchathon.jpg" alt="Logo Barchathon">
                 <div>
                     <strong>Admin Back Office</strong><br>
                     <small>Modifier utilisateur</small>
@@ -217,7 +217,7 @@ if (!$user) {
         </div>
     </div>
 
-    <script src="/Barchathon/view/assets/js/app.js"></script>
+    <script src="/main/View/assets/js/app.js"></script>
     <script src="user.js"></script>
 </body>
 </html>

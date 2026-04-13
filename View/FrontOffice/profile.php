@@ -111,7 +111,7 @@ $currentPage = 'profile';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Mon profil — BarchaThon</title>
-    <link rel="stylesheet" href="/Barchathon/view/assets/css/style.css">
+    <link rel="stylesheet" href="/main/View/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         .topbar-spacer { height: 20px; }
@@ -132,7 +132,7 @@ $currentPage = 'profile';
         <h2>Mon espace</h2>
         <div class="avatar" style="width:80px;height:80px;border-radius:50%;margin:16px auto;">
             <?php if (!empty($u['profile_picture'])): ?>
-                <img src="/Barchathon/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
+                <img src="/main/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
             <?php else: ?>
                 <?php echo $initial; ?>
             <?php endif; ?>
@@ -165,7 +165,7 @@ $currentPage = 'profile';
                 </div>
                 <div class="avatar">
                     <?php if (!empty($u['profile_picture'])): ?>
-                        <img src="/Barchathon/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
+                        <img src="/main/uploads/<?php echo htmlspecialchars($u['profile_picture']); ?>" alt="">
                     <?php else: ?>
                         <?php echo $initial; ?>
                     <?php endif; ?>
@@ -320,7 +320,7 @@ $currentPage = 'profile';
     </div>
 </div>
 
-<script src="/Barchathon/view/assets/js/app.js"></script>
+<script src="/main/View/assets/js/app.js"></script>
 <script src="user.js"></script>
 </body>
 </html>

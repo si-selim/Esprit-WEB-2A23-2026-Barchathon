@@ -116,9 +116,32 @@ class ParcoursController {
     }
     }
 
-    // ========================
-    // STATS PARCOURS
-    // ========================
+    public function rechercherParcoursParNom($search) {
+        $sql = "SELECT p.*, m.nom_marathon FROM parcours p JOIN marathon m ON p.id_marathon = m.id_marathon WHERE p.nom_parcours LIKE :s OR p.point_depart LIKE :s OR p.point_arrivee LIKE :s";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['s' => "%$search%"]);
+            return $query->fetchAll();
+        } catch (Exception $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
+    public function filtrerParcours($difficulte) {
+        $sql = "SELECT p.*, m.nom_marathon FROM parcours p JOIN marathon m ON p.id_marathon = m.id_marathon WHERE p.difficulte = :diff";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['diff' => $difficulte]);
+            return $query->fetchAll();
+        } catch (Exception $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
     public function statsParcours() {
         $sql = "SELECT 
                     COUNT(*) as total,

@@ -41,7 +41,7 @@ $currentPage = $currentPage ?? '';
 <div class="fo-topbar">
     <div class="fo-topbar-shell">
         <a class="fo-brand" href="accueil.php">
-            <img src="/Barchathon/view/assets/images/logo_barchathon.jpg" alt="BarchaThon">
+            <img src="/main/View/assets/images/logo_barchathon.jpg" alt="BarchaThon">
             BarchaThon
         </a>
         <nav class="fo-nav">

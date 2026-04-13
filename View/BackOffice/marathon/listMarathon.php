@@ -122,7 +122,7 @@
             <a class="side-link cta" href="addMarathon.php">➕ Ajouter Marathon</a>
             <a class="side-link" href="../parcours/listParcours.php">🗺️ Parcours</a>
             <a class="side-link" href="../parcours/addParcours.php">➕ Ajouter Parcours</a>
-            <a class="side-link" href="../../FrontOffice/listMarathon.php">👁️ Voir Front Office</a>
+            <a class="side-link" href="../../FrontOffice/listMarathons.php">👁️ Voir Front Office</a>
         </nav>
         <div class="side-note">Gérez vos marathons et parcours depuis ce tableau de bord.</div>
     </aside>
@@ -215,7 +215,7 @@
                             <td>
                                 <img class="marathon-img"
      src="../../FrontOffice/<?= htmlspecialchars($m->getImageMarathon()) ?>"
-     onerror="this.src='../../FrontOffice/images/img1.png'"
+     onerror="this.src='../../FrontOffice/images/img1.svg'"
      alt="photo">
                             </td>
                             <td><strong><?= htmlspecialchars($m->getNomMarathon()) ?></strong></td>

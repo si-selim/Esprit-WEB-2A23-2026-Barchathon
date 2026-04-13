@@ -145,7 +145,7 @@ $regions = $controller->getRegions();
                             <?php foreach ($marathons as $m): ?>
                             <tr>
                                 <td><strong>#<?php echo $m['id_marathon']; ?></strong></td>
-                                <td><img class="marathon-img" src="../../FrontOffice/<?php echo htmlspecialchars($m['image_marathon']); ?>" onerror="this.src='../../FrontOffice/images/img1.png'" alt=""></td>
+                                <td><img class="marathon-img" src="../../FrontOffice/<?php echo htmlspecialchars($m['image_marathon']); ?>" onerror="this.src='../../FrontOffice/images/img1.svg'" alt=""></td>
                                 <td><strong><?php echo htmlspecialchars($m['nom_marathon']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($m['organisateur_marathon']); ?></td>
                                 <td><span class="tag">📍 <?php echo htmlspecialchars($m['region_marathon']); ?></span></td>

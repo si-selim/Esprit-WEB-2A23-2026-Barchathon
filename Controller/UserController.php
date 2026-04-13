@@ -127,7 +127,7 @@ class UserController {
             $pic = $stmt->fetchColumn();
 
             if ($pic) {
-                $picPath = realpath(__DIR__ . '/../../Barchathon/uploads');
+                $picPath = realpath(__DIR__ . '/../uploads');
                 if ($picPath) {
                     $fullPath = $picPath . '/' . $pic;
                     if (file_exists($fullPath)) unlink($fullPath);
@@ -253,8 +253,8 @@ class UserController {
 
         $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
         $filename = uniqid('pp_', true) . '.' . $ext[$mime];
-        $uploadDir = realpath(__DIR__ . '/../../Barchathon/uploads');
-        if (!$uploadDir) $uploadDir = __DIR__ . '/../../Barchathon/uploads';
+        $uploadDir = realpath(__DIR__ . '/../uploads');
+        if (!$uploadDir) $uploadDir = __DIR__ . '/../uploads';
 
         if (move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $filename)) {
             return $filename;
@@ -265,7 +265,7 @@ class UserController {
 
     public function deleteOldPicture($filename) {
         if (!$filename) return;
-        $uploadDir = realpath(__DIR__ . '/../../Barchathon/uploads');
+        $uploadDir = realpath(__DIR__ . '/../uploads');
         if ($uploadDir) {
             $fullPath = $uploadDir . '/' . $filename;
             if (file_exists($fullPath)) unlink($fullPath);

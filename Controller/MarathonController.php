@@ -150,9 +150,57 @@ class MarathonController {
     return "images/uploads/" . $name;
 }
 
-    // ========================
-    // STATS (IMPORTANT POUR ACCUEIL)
-    // ========================
+    public function rechercherMarathon($search) {
+        $sql = "SELECT * FROM marathon WHERE nom_marathon LIKE :s OR organisateur_marathon LIKE :s OR region_marathon LIKE :s";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['s' => "%$search%"]);
+            return $query->fetchAll();
+        } catch (Exception $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
+    public function filtrerMarathon($region) {
+        $sql = "SELECT * FROM marathon WHERE region_marathon = :region";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['region' => $region]);
+            return $query->fetchAll();
+        } catch (Exception $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
+    public function listMarathons() {
+        $sql = "SELECT * FROM marathon";
+        $db = config::getConnexion();
+
+        try {
+            $result = $db->query($sql)->fetchAll();
+            $list = [];
+            foreach ($result as $row) {
+                $list[] = new Marathon(
+                    $row['id_marathon'],
+                    $row['nom_marathon'],
+                    $row['image_marathon'],
+                    $row['organisateur_marathon'],
+                    $row['region_marathon'],
+                    $row['date_marathon'],
+                    $row['nb_places_dispo'],
+                    $row['prix_marathon']
+                );
+            }
+            return $list;
+        } catch (Exception $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
     public function statsNbMarathonsDispo() {
         $sql = "SELECT 
                     COUNT(*) as total,

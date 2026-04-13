@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="image_marathon">Changer la Photo du Marathon</label>
                     <input type="file" id="image_marathon" name="image_marathon" accept=".jpg,.jpeg,.png,.webp">
                     <div class="current-img" id="previewContainer">
-                        <img id="previewImg" src="../../FrontOffice/<?php echo htmlspecialchars($data['image_marathon']); ?>" alt="" onerror="this.src='../../FrontOffice/images/img1.png'">
+                        <img id="previewImg" src="../../FrontOffice/<?php echo htmlspecialchars($data['image_marathon']); ?>" alt="" onerror="this.src='../../FrontOffice/images/img1.svg'">
                         <span id="previewLabel" style="color:#627d98;font-size:0.9rem;">Image actuelle : <?php echo basename($data['image_marathon']); ?></span>
                     </div>
                     <div class="feedback" id="imageFeedback"></div>

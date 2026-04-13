@@ -129,7 +129,7 @@ $currentPage = 'catalogue';
         <?php foreach ($marathons as $m): ?>
         <a class="card" href="detailMarathon.php?id=<?php echo $m['id_marathon']; ?>">
             <div class="card-img-wrap">
-                <img src="<?php echo htmlspecialchars($m['image_marathon']); ?>" alt="<?php echo htmlspecialchars($m['nom_marathon']); ?>" onerror="this.src='images/img1.png'">
+                <img src="<?php echo htmlspecialchars($m['image_marathon']); ?>" alt="<?php echo htmlspecialchars($m['nom_marathon']); ?>" onerror="this.src='images/img1.svg'">
                 <span class="card-id">#<?php echo $m['id_marathon']; ?></span>
             </div>
             <div class="card-body">
