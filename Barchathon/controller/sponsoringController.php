@@ -84,6 +84,14 @@ class sponsoringController {
             $query = $db->query($sql);
             while ($row = $query->fetch()) {
                 echo "<tr>";
+                echo "<td>{$row['idSponsoring']}</td>";
+                echo "<td>{$row['nomSponsoring']}</td>";
+                echo "<td>{$row['dateDebut']}</td>";
+                echo "<td>{$row['dateFin']}</td>";
+                echo "<td>{$row['montant']} €</td>";
+                echo "<td>{$row['etat']}</td>";
+                echo "<td>{$row['idSponsor']}</td>";
+                echo "<td>{$row['idMarathon']}</td>";
                 if ($showActions || $deleteOnly || $viewOnly) {
                     echo "<td>";
                     if ($showActions) {
@@ -101,6 +109,23 @@ class sponsoringController {
                     }
                     echo "</td>";
                 }
+                echo "</tr>";
+            }
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+    public function afficherSponsoringSponsor($idSponsor, $showActions = true) {
+        $sql = "SELECT * FROM sponsoring WHERE idSponsor = :idSponsor";
+        $db = config::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->bindValue(':idSponsor', $idSponsor);
+            $query->execute();
+            
+            while ($row = $query->fetch()) {
+                echo "<tr>";
                 echo "<td>{$row['idSponsoring']}</td>";
                 echo "<td>{$row['nomSponsoring']}</td>";
                 echo "<td>{$row['dateDebut']}</td>";
@@ -109,6 +134,14 @@ class sponsoringController {
                 echo "<td>{$row['etat']}</td>";
                 echo "<td>{$row['idSponsor']}</td>";
                 echo "<td>{$row['idMarathon']}</td>";
+                if ($showActions) {
+                    echo "<td>";
+                    echo "<div class='row-actions'>";
+                    echo '<a href="deleteSponsoring.php?id=' . $row['idSponsoring'] . '" class="icon-btn icon-delete delete-sponsoring-btn" data-sponsoring-name="' . htmlspecialchars($row['nomSponsoring'], ENT_QUOTES) . '" title="Supprimer"></a>';
+                    echo "<a href='modifySponsoring.php?id={$row['idSponsoring']}' class='icon-btn icon-edit' title='Modifier'></a>";
+                    echo "</div>";
+                    echo "</td>";
+                }
                 echo "</tr>";
             }
         } catch (Exception $e) {

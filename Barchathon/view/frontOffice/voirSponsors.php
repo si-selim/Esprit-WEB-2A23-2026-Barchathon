@@ -71,7 +71,10 @@
             <h2>Sponsors</h2>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; gap:20px;">
                 <div class="search-box" style="width:125px;">
+                    <label>
+                        Rechercher un sponsor
                     <input type="search" placeholder="rechercher par nom">
+                    </label>
                 </div>
                 <div class="filter-group">
                     <label>
@@ -87,7 +90,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Actions</th>
                             <th>#</th>
                             <th>Nom</th>
                             <th>Type</th>
@@ -95,6 +97,7 @@
                             <th>Contact</th>
                             <th>Email</th>
                             <th>PageWeb</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -108,7 +111,10 @@
             <h2>Sponsoring</h2>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; gap:20px;">
                 <div class="search-box" style="width:125px;">
+                    <label>
+                        Rechercher un sponsoring
                     <input type="search" placeholder="rechercher par nom">
+                    </label>
                 </div>
                 <div class="filter-group">
                     <label>
@@ -165,7 +171,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $sController->afficherSponsoring(false, false, false); ?>
+                        <?php 
+                        if (isset($_GET['idSponsor'])) {
+                            $sController->afficherSponsoringSponsor($_GET['idSponsor'], false);
+                        } else {
+                            $sController->afficherSponsoring(false, false, false);
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -175,7 +187,10 @@
             <h2>Fournitures</h2>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; gap:20px;">
                 <div class="search-box" style="width:125px;">
+                    <label>
+                        Rechercher une fourniture
                     <input type="search" placeholder="rechercher par nom">
+                    </label>
                 </div>
                 <div class="filter-group">
                     <label>
@@ -264,5 +279,17 @@
             </div>
            </section>
     </div>
+
+    <script>
+        // Gestionnaire pour les boutons "Voir sponsoring"
+        document.querySelectorAll('.view-sponsoring-btn').forEach(button => {
+            button.addEventListener('click', event => {
+                event.preventDefault();
+                const sponsorId = button.dataset.sponsorId;
+                // Rediriger vers la page avec le paramètre du sponsor
+                window.location.href = `voirSponsors.php?idSponsor=${sponsorId}#sponsoring`;
+            });
+        });
+    </script>
 </body>
 </html>

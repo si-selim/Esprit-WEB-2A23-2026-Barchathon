@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['id'])) {
     $id = intval($_GET['id']);
 
     // Check required fields
-    $requiredFields = ['name', 'type', 'address', 'contact', 'email', 'idUser'];
+    $requiredFields = ['name', 'type', 'address', 'contact', 'email'];
     $errors = [];
     foreach ($requiredFields as $field) {
         if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['id'])) {
         $_POST['contact'],
         $_POST['email'],
         $_POST['website'],
-        intval($_POST['idUser'])
+        1                        // intval($_POST['idUser'])
     );
 
     // Update in database

@@ -28,7 +28,7 @@ class sponsorController {
                 'contact' => $sponsor->getContact(),
                 'email' => $sponsor->getEmail(),
                 'pageWeb' => $sponsor->getPageWeb(),
-                'idUser' => $sponsor->getIdUser()
+                'idUser' =>  $sponsor->getIdUser()
             ]);
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
@@ -90,26 +90,7 @@ class sponsorController {
                     echo "<td>{$row['email']}</td>";
                     echo "<td>{$row['contact']}</td>";
                     echo "<td><a href='addSponsoring.php?idSponsor={$row['idSponsor']}{$extraParams}' class='btn btn-primary'>Choisir</a></td>";
-                } elseif ($showActions || $deleteOnly || $viewOnly) {
-                    echo "<td>";
-                    if ($showActions) {
-                        echo "<a href='#sponsoring' class='btn btn-secondary'>Voir sponsoring</a>";
-                        echo "<a href='#fournitures' class='btn btn-secondary'>Voir fourniture</a>";
-                        echo "<div class='row-actions'>";
-                        echo '<a href="deleteSponsor.php?id=' . $row['idSponsor'] . '" class="icon-btn icon-delete delete-sponsor-btn" data-sponsor-name="' . htmlspecialchars($row['nom'], ENT_QUOTES) . '" title="Supprimer"></a>';
-                        echo "<a href='modifySponsor.php?id={$row['idSponsor']}' class='icon-btn icon-edit' title='Modifier'></a>";
-                        echo "</div>";
-                    } elseif ($deleteOnly) {
-                        echo "<div class='row-actions'>";
-                        echo '<a href="deleteSponsor.php?id=' . $row['idSponsor'] . '" class="icon-btn icon-delete delete-sponsor-btn" data-sponsor-name="' . htmlspecialchars($row['nom'], ENT_QUOTES) . '" title="Supprimer"></a>';
-                        echo "</div>";
-                    } elseif ($viewOnly) {
-                        echo "<a href='#sponsoring' class='btn btn-secondary'>Voir sponsoring</a>";
-                        echo "<a href='#fournitures' class='btn btn-secondary'>Voir fourniture</a>";
-                    }
-                    echo "</td>";
-                }
-                if (!$chooseButton) {
+                } else {
                     if ($deleteOnly) {
                         echo "<td>{$row['idUser']}</td>";
                         echo "<td>{$row['idSponsor']}</td>";
@@ -131,6 +112,25 @@ class sponsorController {
                         $pageWeb = $row['pageWeb'];
                         $href = (strpos($pageWeb, 'http') === 0 ? $pageWeb : 'https://' . $pageWeb);
                         echo "<td><a href='$href' target='_blank' rel='noopener noreferrer'>{$row['nom']}</a></td>";
+                    }
+                    if ($showActions || $deleteOnly || $viewOnly) {
+                        echo "<td>";
+                        if ($showActions) {
+                            echo "<button class='btn btn-secondary view-sponsoring-btn' data-sponsor-id='{$row['idSponsor']}'>Voir sponsoring</button>";
+                            echo "<a href='#fournitures' class='btn btn-secondary'>Voir fourniture</a>";
+                            echo "<div class='row-actions'>";
+                            echo '<a href="deleteSponsor.php?id=' . $row['idSponsor'] . '" class="icon-btn icon-delete delete-sponsor-btn" data-sponsor-name="' . htmlspecialchars($row['nom'], ENT_QUOTES) . '" title="Supprimer"></a>';
+                            echo "<a href='modifySponsor.php?id={$row['idSponsor']}' class='icon-btn icon-edit' title='Modifier'></a>";
+                            echo "</div>";
+                        } elseif ($deleteOnly) {
+                            echo "<div class='row-actions'>";
+                            echo '<a href="deleteSponsor.php?id=' . $row['idSponsor'] . '" class="icon-btn icon-delete delete-sponsor-btn" data-sponsor-name="' . htmlspecialchars($row['nom'], ENT_QUOTES) . '" title="Supprimer"></a>';
+                            echo "</div>";
+                        } elseif ($viewOnly) {
+                            echo "<button class='btn btn-secondary view-sponsoring-btn' data-sponsor-id='{$row['idSponsor']}'>Voir sponsoring</button>";
+                            echo "<a href='#fournitures' class='btn btn-secondary'>Voir fourniture</a>";
+                        }
+                        echo "</td>";
                     }
                 }
                 echo "</tr>";

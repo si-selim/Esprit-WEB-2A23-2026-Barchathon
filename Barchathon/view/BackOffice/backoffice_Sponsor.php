@@ -78,7 +78,7 @@
         .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:12px; border:1px solid rgba(16,42,67,.12); background:#fff; color:var(--ink); cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
         .icon-btn:hover { transform:translateY(-1px); box-shadow:0 10px 18px rgba(16,42,67,.12); }
         .icon-delete { color:#d92d20; border-color:rgba(217,45,32,.15); }
-        .icon-delete::before { content:"🗑"; font-size:1rem; }
+        .icon-delete::before { content:"🗑"; font-size:2rem; }
         .row-actions { display:flex; gap:10px; }
         .icon-edit { color:#d97706; border-color:rgba(217,119,6,.18); }
         .icon-edit::before { content:"✏"; font-size:1rem; }
@@ -136,18 +136,21 @@
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <div class="search-box">
+                            <label>
+                                Rechercher un sponsor
                             <input type="search" placeholder="rechercher par nom">
+                            </label>
                         </div>
                     </div>
                     <div class="toolbar-right">
                         <div class="filter-group">
-                            <label>
-                                Filtrer ordre alphabétique
+                            
+                                filtrer ordre alphabétique
                                 <select>
                                     <option>A-Z</option>
                                     <option>Z-A</option>
                                 </select>
-                            </label>
+                            
                         </div>
                     </div>
                 </div>
@@ -155,7 +158,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Actions</th>
                                 <th>id Organisateur</th>
                                 <th>id Sponsor</th>
                                 <th>Nom</th>
@@ -164,6 +166,7 @@
                                 <th>Contact</th>
                                 <th>Email</th>
                                 <th>PageWeb</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,12 +195,15 @@
                 <h2 class="section-title">Sponsoring</h2>
                 <div class="toolbar">
                     <div class="search-box">
-                        <input type="search" placeholder="Rechercher un sponsoring ou un état">
+                        <label>
+                            rechercher un sponsoring
+                        <input type="search" placeholder="Rechercher par nom ou par état">
+                        </label>
                     </div>
                     <div class="filter-group">
                         <label>
                             Filtrer par état
-                            <select>
+                            <select >
                                 <option>Tout</option>
                                 <option>Actif</option>
                                 <option>Terminé</option>
@@ -219,7 +225,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Actions</th>
                                 <th>#</th>
                                 <th>Nom Sponsoring</th>
                                 <th>Date début</th>
@@ -228,6 +233,7 @@
                                 <th>État</th>
                                 <th>id Sponsor</th>
                                 <th>id Marathon</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -244,7 +250,10 @@
                 <h2 class="section-title">Fourniture</h2>
                 <div class="toolbar">
                     <div class="search-box">
+                        <label>
+                            Rechercher une fourniture
                         <input type="search" placeholder="Rechercher une fourniture ou un type">
+                        </label>
                     </div>
                     <div class="filter-group">
                         <label>

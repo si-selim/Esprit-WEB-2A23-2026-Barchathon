@@ -3,7 +3,7 @@ include '../../controller/sponsorController.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Check required fields
-    $requiredFields = ['name', 'type', 'address', 'contact', 'email', 'idUser'];
+    $requiredFields = ['name', 'type', 'address', 'contact', 'email'];
     $errors = [];
     foreach ($requiredFields as $field) {
         if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_POST['contact'],
         $_POST['email'],
         $_POST['website'],
-        intval($_POST['idUser'])
+        1
     );
 
     // Add to database

@@ -79,10 +79,7 @@
                         <input id="email" name="email" type="text" placeholder="contact@sponsor.com" value="<?= htmlspecialchars($sponsor['email']) ?>">
                         <span id="email-error" class="error"></span>
                     </div>
-                    <div class="field">
-                        <label for="idUser">idUser</label>
-                        <input id="idUser" name="idUser" type="number" placeholder="mon identifiant organisateur" value="<?= htmlspecialchars($sponsor['idUser']) ?>">
-                    </div>
+                    
                     <div class="field full-width">
                         <label for="website">PageWeb</label>
                         <input id="website" name="website" type="text" placeholder="https://sponsor.fr" value="<?= htmlspecialchars($sponsor['pageWeb']) ?>">

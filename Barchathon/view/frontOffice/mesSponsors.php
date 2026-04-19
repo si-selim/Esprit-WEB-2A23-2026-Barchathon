@@ -36,9 +36,9 @@
         .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:12px; border:1px solid rgba(16,42,67,.12); background:#fff; color:var(--ink); cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
         .icon-btn:hover { transform:translateY(-1px); box-shadow:0 10px 18px rgba(16,42,67,.12); }
         .icon-delete { color:#d92d20; border-color:rgba(217,45,32,.15); }
-        .icon-delete::before { content:"🗑"; font-size:1rem; }
+        .icon-delete::before { content:"🗑"; font-size:2rem; }
         .icon-edit { color:#d97706; border-color:rgba(217,119,6,.18); }
-        .icon-edit::before { content:"✏"; font-size:1rem; }
+        .icon-edit::before { content:"✏"; font-size:2rem; }
         .section-card { background:var(--card); border-radius:24px; padding:22px; box-shadow:0 14px 34px rgba(16,42,67,.08); border:1px solid rgba(16,42,67,.08); margin-bottom:28px; }
         .section-title { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:18px; }
         .section-title h1 { margin:0; font-size:2rem; }
@@ -93,7 +93,10 @@
                 </div>
                 <div class="toolbar-right">
                     <div class="search-box">
+                        <label>
+                            Rechercher un sponsor
                         <input type="search" placeholder="rechercher par nom">
+                        </label>
                     </div>
                     <div class="filter-group">
                         <label>
@@ -111,7 +114,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Actions</th>
                             <th>#</th>
                             <th>Nom</th>
                             <th>Type</th>
@@ -119,6 +121,7 @@
                             <th>Contact</th>
                             <th>Email</th>
                             <th>PageWeb</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,7 +142,10 @@
                 </div>
                 <div class="toolbar-right">
                     <div class="search-box">
+                        <label>
+                            Rechercher un sponsoring
                         <input type="search" placeholder="rechercher par nom">
+                        </label>
                     </div>
                     <div class="filter-group">
                         <label>
@@ -187,7 +193,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Actions</th>
                             <th>#</th>
                             <th>Nom Sponsoring</th>
                             <th>Date début</th>
@@ -196,10 +201,17 @@
                             <th>État</th>
                             <th>id Sponsor</th>
                             <th>id Marathon</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $sController->afficherSponsoring(true, false, false); ?>
+                        <?php 
+                        if (isset($_GET['idSponsor'])) {
+                            $sController->afficherSponsoringSponsor($_GET['idSponsor'], true);
+                        } else {
+                            $sController->afficherSponsoring(true, false, false);
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -216,7 +228,10 @@
                 </div>
                 <div class="toolbar-right">
                     <div class="search-box">
+                        <label>
+                            Rechercher une fourniture
                         <input type="search" placeholder="rechercher par nom">
+                        </label>
                     </div>
                     <div class="filter-group">
                         <label>
@@ -372,6 +387,16 @@
             if (event.target === deleteModal) {
                 deleteModal.classList.remove('active');
             }
+        });
+
+        // Gestionnaire pour les boutons "Voir sponsoring"
+        document.querySelectorAll('.view-sponsoring-btn').forEach(button => {
+            button.addEventListener('click', event => {
+                event.preventDefault();
+                const sponsorId = button.dataset.sponsorId;
+                // Rediriger vers la page avec le paramètre du sponsor
+                window.location.href = `mesSponsors.php?idSponsor=${sponsorId}#sponsoring`;
+            });
         });
     </script>
 </body>
