@@ -81,7 +81,7 @@ $lignes = $lignesQuery->fetchAll();
         </a>
         <nav class="fo-nav">
             <a class="fo-link" href="index.php">Accueil</a>
-            <a class="fo-link" href="listMarathons.php">Catalogue</a>
+            <a class="fo-link" href="produit.php">Catalogue</a>
             <a class="fo-link" href="notifications.php">Notifications (1)</a>
             <a class="fo-link" href="Mes commandes.php">Voir mes commandes</a>
             <a class="fo-profile" href="profile.php">Participant Demo <span class="fo-profile-role">participant</span></a>
