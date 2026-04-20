@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tailles = $_POST['taille'];
     $couleurs = $_POST['couleur'];
     $id_inscription = $_POST['id_inscription'];
-
+    $dossard->deleteByInscription($id_inscription);
     for ($i = 0; $i < count($numeros); $i++) {
 
         $dossard->ajouter(

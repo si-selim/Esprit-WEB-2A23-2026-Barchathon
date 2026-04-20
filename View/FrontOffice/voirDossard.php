@@ -1,10 +1,20 @@
 <?php
 require_once "../../Model/Dossard.php";
+require_once "../../Model/Inscription.php";
 
+// 1️⃣ récupérer ID
 $id = isset($_GET['id_inscription']) ? $_GET['id_inscription'] : 0;
 
+// 2️⃣ récupérer dossards
 $dossardModel = new Dossard();
 $liste = $dossardModel->afficherParInscription($id);
+
+// 3️⃣ récupérer nb personnes
+$inscriptionModel = new Inscription();
+$data = $inscriptionModel->rechercher($id);
+
+$nb = $data ? $data[0]['nb_personnes'] : 0;
+$nbExistants = count($liste);
 ?>
 
 <!DOCTYPE html>
@@ -12,43 +22,100 @@ $liste = $dossardModel->afficherParInscription($id);
 <head>
     <meta charset="UTF-8">
     <title>Voir Dossards</title>
-    <link rel="stylesheet" href="dossard.css">
+
+    <style>
+        body {
+            margin:0;
+            font-family:Segoe UI;
+            background:#f4fbfb;
+        }
+
+        .page-shell {
+            width:90%;
+            margin:auto;
+        }
+
+        .topbar {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px;
+            background:white;
+            border-radius:10px;
+            margin:20px 0;
+        }
+
+        .nav-links a {
+            margin:0 10px;
+            text-decoration:none;
+            color:#0b2032;
+            font-weight:bold;
+        }
+
+        .card {
+            background:white;
+            padding:20px;
+            border-radius:15px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        /* 🔵 TABLE STYLE BACKOFFICE */
+        .table-wrapper table {
+            width:100%;
+            border-collapse:collapse;
+            border-radius:15px;
+            overflow:hidden;
+        }
+
+        .table-wrapper thead th {
+            background:#0b2032; /* BLEU */
+            color:white;
+            padding:12px;
+            text-align:center;
+        }
+
+        .table-wrapper tbody td {
+            padding:12px;
+            border-bottom:1px solid #ddd;
+            text-align:center;
+        }
+
+        .table-wrapper tbody tr:hover {
+            background:#f0f4f8;
+        }
+
+        .btn {
+            display:inline-block;
+            padding:10px 15px;
+            background:#0f766e;
+            color:white;
+            border-radius:10px;
+            text-decoration:none;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="page-shell">
 
-    
     <header class="topbar">
-        <div class="brand">
-            <span class="brand-mark">BT</span>
-            <div>
-                <strong>BarchaThon</strong>
-                <small>Front Office</small>
-            </div>
+        <div>
+            <strong>BarchaThon</strong>
         </div>
 
         <nav class="nav-links">
-            <a href="index.php">Accueil</a>
-            <a href="listMarathons.php">Catalogue</a>
             <a href="inscription.php">Inscription</a>
         </nav>
     </header>
 
-    
-    <main class="content-grid">
+    <main>
 
-        <section class="card">
+        <div class="card">
 
-            <div class="card-title">
-                <div>
-                    <h1>Dossards de l'inscription #<?php echo $id; ?></h1>
-                    <p>Liste des dossards générés pour ce participant</p>
-                </div>
-            </div>
+            <h2>Dossards de l'inscription #<?php echo $id; ?></h2>
 
-            <?php if(empty($liste)) { ?>
+            <?php if($nb == 0) { ?>
                 <p style="color:red;">Aucun dossard trouvé</p>
             <?php } else { ?>
 
@@ -56,6 +123,7 @@ $liste = $dossardModel->afficherParInscription($id);
                 <table>
                     <thead>
                         <tr>
+                            <th>Action</th>
                             <th>Nom</th>
                             <th>Numéro</th>
                             <th>Taille</th>
@@ -64,14 +132,46 @@ $liste = $dossardModel->afficherParInscription($id);
                     </thead>
 
                     <tbody>
-                        <?php foreach($liste as $d) { ?>
-                        <tr>
-                            <td><?php echo $d['nom']; ?></td>
-                            <td><?php echo $d['numero']; ?></td>
-                            <td><?php echo $d['taille']; ?></td>
-                            <td><?php echo $d['couleur']; ?></td>
-                        </tr>
-                        <?php } ?>
+                    <?php for($i = 0; $i < $nb; $i++) { ?>
+                    <tr>
+
+    <!-- ACTION -->
+    <td>
+        <?php if(!isset($liste[$i])) { ?>
+            
+            <a href="dossard.php?id_inscription=<?php echo $id; ?>" 
+               class="btn"
+               style="background:orange;">
+               Compléter
+            </a>
+
+        <?php } else { ?>
+            ✔
+        <?php } ?>
+    </td>
+
+   
+    <td>
+        <?php echo isset($liste[$i]) ? $liste[$i]['nom'] : "—"; ?>
+    </td>
+
+    
+    <td>
+        <?php echo isset($liste[$i]) ? $liste[$i]['numero'] : ($i + 1); ?>
+    </td>
+
+    
+    <td>
+        <?php echo isset($liste[$i]) ? $liste[$i]['taille'] : "Non rempli"; ?>
+    </td>
+
+   
+    <td>
+        <?php echo isset($liste[$i]) ? $liste[$i]['couleur'] : "Non rempli"; ?>
+    </td>
+
+</tr>
+                    <?php } ?>
                     </tbody>
                 </table>
             </div>
@@ -80,14 +180,9 @@ $liste = $dossardModel->afficherParInscription($id);
 
             <br>
 
-            
-            <div class="action-buttons">
-                <a href="inscription.php" class="btn btn-secondary">
-                     Retour
-                </a>
-            </div>
+            <a href="inscription.php" class="btn">Retour</a>
 
-        </section>
+        </div>
 
     </main>
 

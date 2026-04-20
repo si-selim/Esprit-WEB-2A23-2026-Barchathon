@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ===== DATE AUTOMATIQUE =====
+    const form = document.getElementById("formInscription");
+
     let dateInput = document.getElementById("date_paiement");
     if (dateInput) {
         let today = new Date().toISOString().split("T")[0];
         dateInput.value = today;
     }
 
-    // ===== FONCTION CALCUL PRIX =====
     function calculerPrix() {
         let nb = document.getElementById("nb_personnes").value;
         let circuit = document.getElementById("circuit").value;
@@ -21,74 +21,138 @@ document.addEventListener("DOMContentLoaded", function () {
         let total = Number(nb) * prixUnitaire;
 
         let champPrix = document.getElementById("prix_total");
-
         if (champPrix) {
             champPrix.value = (total || 0) + " TND";
         }
     }
 
-    // ===== EVENEMENTS AUTOMATIQUES =====
+    function validateField(field) {
+
+        let value = field.value.trim();
+        let error = document.getElementById("error-" + field.id);
+
+        if (!error) return;
+
+        switch (field.id) {
+
+            case "nb_personnes":
+                if (value === "" || isNaN(value) || Number(value) <= 0) {
+                    error.style.color = "red";
+                    error.innerText = " Nombre invalide";
+                } else {
+                    error.style.color = "green";
+                    error.innerText = " Correct";
+                }
+                break;
+
+            case "circuit":
+                if (value === "") {
+                    error.style.color = "red";
+                    error.innerText = " Choisir circuit";
+                } else {
+                    error.style.color = "green";
+                    error.innerText = " Correct";
+                }
+                break;
+
+            case "mode_paiement":
+                if (value === "") {
+                    error.style.color = "red";
+                    error.innerText = " Choisir mode";
+                } else {
+                    error.style.color = "green";
+                    error.innerText = " Correct";
+                }
+                break;
+
+            case "date_paiement":
+                if (value === "") {
+                    error.style.color = "red";
+                    error.innerText = " Date obligatoire";
+                } else {
+                    error.style.color = "green";
+                    error.innerText = " Correct";
+                }
+                break;
+        }
+    }
+
     let nbInput = document.getElementById("nb_personnes");
     let circuitInput = document.getElementById("circuit");
+    let modeInput = document.getElementById("mode_paiement");
 
-    if (nbInput) nbInput.addEventListener("input", calculerPrix);
-    if (circuitInput) circuitInput.addEventListener("change", calculerPrix);
+    if (nbInput) {
+        nbInput.addEventListener("input", function () {
+            calculerPrix();
+            validateField(this);
+        });
+    }
 
-    // ===== FORMULAIRE =====
-    const form = document.getElementById("formInscription");
+    if (circuitInput) {
+        circuitInput.addEventListener("change", function () {
+            calculerPrix();
+            validateField(this);
+        });
+    }
+
+    if (modeInput) {
+        modeInput.addEventListener("change", function () {
+            validateField(this);
+        });
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener("change", function () {
+            validateField(this);
+        });
+    }
+
     if (!form) return;
 
     form.addEventListener("submit", function (e) {
 
         e.preventDefault();
 
-        let nb = document.getElementById("nb_personnes").value.trim();
-        let circuit = document.getElementById("circuit").value;
-        let mode = document.getElementById("mode_paiement").value;
-        let date = document.getElementById("date_paiement").value;
+        let nb = nbInput.value.trim();
+        let circuit = circuitInput.value;
+        let mode = modeInput.value;
+        let date = dateInput.value;
 
-        let erreurs = [];
+        let valid = true;
 
-        // ===== CONTROLES =====
-        if (nb === "" || isNaN(nb) || Number(nb) <= 0) {
-            erreurs.push("Nombre de personnes invalide");
-        }
+        // validations
+        if (nb === "" || isNaN(nb) || Number(nb) <= 0) valid = false;
+        if (circuit === "") valid = false;
+        if (mode === "") valid = false;
+        if (date === "") valid = false;
 
-        if (circuit === "") {
-            erreurs.push("Veuillez choisir un circuit");
-        }
-
-        if (mode === "") {
-            erreurs.push("Veuillez choisir un mode de paiement");
-        }
-
-        if (date === "") {
-            erreurs.push("Veuillez choisir une date de paiement");
-        }
-
-        // ===== STOP SI ERREURS =====
-        if (erreurs.length > 0) {
-            alert("Erreurs :\n\n" + erreurs.join("\n"));
+        if (!valid) {
+            alert(" Vérifiez les champs !");
             return;
         }
 
-        // ===== CALCUL FINAL =====
         calculerPrix();
 
+        let id = document.getElementById("id_inscription").value;
+
+        if (id === "") {
+            alert(" Inscription ajoutée !");
+        } else {
+            alert(" Inscription modifiée !");
+        }
+
         form.submit();
-
     });
-    
-});
-window.fillForm = function(id, nb, mode, date, parcours) {
 
-    console.log("CLICK OK", id);
+});
+
+window.fillForm = function(id, nb, mode, date, parcours) {
 
     document.getElementById("id_inscription").value = id;
     document.getElementById("nb_personnes").value = nb;
     document.getElementById("mode_paiement").value = mode;
-    let dateFormat = date.split(" ")[0];
-document.getElementById("date_paiement").value = dateFormat;
+
+    document.getElementById("date_paiement").value = date;
 
     let circuit = "";
     if (parcours == 1) circuit = "10km";
@@ -96,15 +160,19 @@ document.getElementById("date_paiement").value = dateFormat;
     else circuit = "42km";
 
     document.getElementById("circuit").value = circuit;
-}
+
+    let event = new Event("input");
+    document.getElementById("nb_personnes").dispatchEvent(event);
+};
+
 window.rechercher = function() {
+
     let id = document.getElementById("search_id").value;
 
     if (id === "") {
-        alert("Veuillez entrer un ID");
+        alert(" Entrez un ID");
         return;
     }
 
-    // 👉 RESTE SUR inscription.php
     window.location.href = window.location.pathname + "?search_id=" + id;
 };

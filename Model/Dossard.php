@@ -44,5 +44,10 @@ public function afficherTous()
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+public function deleteByInscription($id) {
+    $sql = "DELETE FROM dossard WHERE id_inscription = ?";
+    $stmt = $this->conn->prepare($sql);
+    return $stmt->execute([$id]);
+}
 }
 ?>

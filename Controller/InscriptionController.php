@@ -4,14 +4,17 @@ require_once "../Model/Inscription.php";
 $inscription = new Inscription();
 if (isset($_GET['delete'])) {
 
-    $id = $_GET['delete'];
-
-    require_once "../Model/Inscription.php";
-    $inscription = new Inscription();
+    $id = intval($_GET['delete']);
 
     $inscription->supprimer($id);
 
-    header("Location: ../View/BackOffice/afficher.php");
+    
+    if (isset($_GET['from']) && $_GET['from'] == "front") {
+        header("Location: ../View/FrontOffice/inscription.php");
+    } else {
+        header("Location: ../View/BackOffice/afficher.php");
+    }
+
     exit;
 }
 
@@ -27,8 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($circuit == "10km") $id_parcours = 1;
     else if ($circuit == "21km") $id_parcours = 2;
     else $id_parcours = 3;
-
-    if ($id == "") {
+    $id = isset($_POST['id_inscription']) ? $_POST['id_inscription'] : "";
+    if (empty($id)) {
 
     $inscription->ajouter($nb, $mode, $date, $id_parcours, 1);
     $last_id = $inscription->getLastId();

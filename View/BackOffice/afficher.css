@@ -244,3 +244,13 @@ tbody tr:hover {
         order: 3;
     }
 }
+.table-actions {
+    display: flex;
+    justify-content: center; /* centre horizontal */
+    align-items: center;
+    gap: 10px;
+}
+.table-actions .btn {
+    min-width: 130px;
+    text-align: center;
+}

@@ -138,38 +138,30 @@ select:focus {
 }
 
 
-.table-wrapper {
-    max-width: 700px;
-    margin: 20px auto;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    background: white;
-}
-
-table {
+.table-wrapper table {
     width: 100%;
     border-collapse: collapse;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
 }
 
-th {
-    background: rgba(15, 118, 110, 0.08);
-    padding: 10px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: var(--text);
-}
-
-td {
-    padding: 10px;
-    font-size: 0.85rem;
+/* FORCER style backoffice */
+.table-wrapper thead th {
+    background: #0b2032 !important; /* 🔵 bleu foncé */
+    color: white !important;
+    padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #f0f0f0;
 }
 
-tbody tr:hover {
-    background: var(--surface-soft);
+.table-wrapper tbody td {
+    text-align: center;
 }
+
+.table-wrapper tbody tr:hover {
+    background: #f0f4f8;
+}
+
 
 
 .table-actions {

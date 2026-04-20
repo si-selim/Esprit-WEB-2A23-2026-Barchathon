@@ -30,8 +30,8 @@ if ($search !== "") {
                 </div>
             </div>
             <nav class="nav-links">
-                <a href="index.php">Accueil</a>
-                <a href="listMarathons.php" class="active">Catalogue</a>
+                
+                
                 <a href="dossard.php">Dossard</a>
                 <a href="afficher.html">Afficher Tout</a>
             </nav>
@@ -64,6 +64,7 @@ if ($search !== "") {
                         <div class="field-group">
                             <label for="nb_personnes">Nombre de personnes</label>
                             <input id="nb_personnes" type="number" name="nb_personnes"  placeholder="1" >
+                            <small id="error-nb_personnes"></small>
                         </div>
 
                         <div class="field-group">
@@ -74,6 +75,7 @@ if ($search !== "") {
                                 <option value="21km">21 km</option>
                                 <option value="42km">42 km</option>
                             </select>
+                            <small id="error-circuit"></small>
                         </div>
 
                         <div class="field-group">
@@ -84,6 +86,7 @@ if ($search !== "") {
                                 <option value="card">Carte bancaire</option>
                                 <option value="transfer">Virement</option>
                             </select>
+                            <small id="error-mode_paiement"></small>
                         </div>
 
                         
@@ -93,11 +96,14 @@ if ($search !== "") {
                         <div class="field-group">
                             <label for="date_paiement">Date de paiement</label>
                             <input id="date_paiement" type="date" name="date_paiement" >
+                            <small id="error-date_paiement"></small>
                         </div>
                     </div>
 
                     <div class="add-button-row">
-                        <button class="btn btn-primary" type="submit">Ajouter inscription</button>
+                        <button class="btn btn-primary" type="submit" name="action" value="add">
+                            Ajouter inscription
+                        </button>
                     </div>
                     
                     <div class="field-group">
@@ -111,9 +117,9 @@ if ($search !== "") {
                      </div>
 
                     <div class="action-buttons">
-                    <button class="btn btn-outlined" type="submit">
+                    <button class="btn btn-outlined" type="submit" name="action" value="update">
                         Modifier
-                    </button>                        
+                    </button>                     
                     <button class="btn btn-secondary" type="button">Valider paiement</button>
                     </div>
                 </form>
@@ -138,44 +144,58 @@ if ($search !== "") {
                                 </tr>
                             </thead>
                             <tbody>
-                             <?php foreach($liste as $row) { ?>
-                                    <tr>
-                                        <td><?php echo $row['date_inscription']; ?></td>
-                                        <td><?php echo $row['mode_de_paiement']; ?></td>
-                                        <td><?php echo $row['id_parcours']; ?></td>
-                                        <td><?php echo $row['nb_personnes']; ?></td>
-                                        <td><?php echo $row['date_paiement']; ?></td>
-                                        <td>
-                                            <div class="table-actions">
 
-                                                <button class="btn btn-secondary btn-small"
-                                                        type="button"
-                                                        onclick="fillForm(
-                                                            <?php echo $row['id_inscription']; ?>,
-                                                            <?php echo $row['nb_personnes']; ?>,
-                                                            '<?php echo $row['mode_de_paiement']; ?>',
-                                                            '<?php echo date("Y-m-d", strtotime($row['date_paiement'])); ?>',
-                                                            <?php echo $row['id_parcours']; ?>
-                                                        )">
-                                                    Sélectionner
-                                                </button>
+                        <?php if(empty($liste)) { ?>
 
-                                                <a href="../FrontOffice/voirDossard.php?id_inscription=<?php echo $row['id_inscription']; ?>" 
-                                                    class="btn btn-secondary btn-small">
-                                                    Voir dossard
-                                                    </a>
+                            <tr>
+                                <td colspan="6" style="text-align:center; color:red;">
+                                    Aucune inscription trouvée
+                                </td>
+                            </tr>
 
-                                                <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>" 
-                                                class="btn btn-danger btn-small"
-                                                onclick="return confirm('Supprimer cette inscription ?')">
-                                                    Supprimer
-                                                </a>
+                        <?php } else { ?>
 
-                                            </div>
-                                        </td>
-                                    </tr>
+                            <?php foreach($liste as $row) { ?>
+                                <tr>
+                                    <td><?php echo $row['date_inscription']; ?></td>
+                                    <td><?php echo $row['mode_de_paiement']; ?></td>
+                                    <td><?php echo $row['id_parcours']; ?></td>
+                                    <td><?php echo $row['nb_personnes']; ?></td>
+                                    <td><?php echo $row['date_paiement']; ?></td>
+
+                                    <td>
+                                        <div class="table-actions">
+
+                                            <button class="btn btn-secondary btn-small"
+                                                onclick="fillForm(
+                                                    <?php echo $row['id_inscription']; ?>,
+                                                    <?php echo $row['nb_personnes']; ?>,
+                                                    '<?php echo $row['mode_de_paiement']; ?>',
+                                                    '<?php echo date("Y-m-d", strtotime($row['date_paiement'])); ?>',
+                                                    <?php echo $row['id_parcours']; ?>
+                                                )">
+                                                Sélectionner
+                                            </button>
+
+                                            <a href="../FrontOffice/voirDossard.php?id_inscription=<?php echo $row['id_inscription']; ?>" 
+                                            class="btn btn-secondary btn-small">
+                                            Voir dossard
+                                            </a>
+
+                                            <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&from=front" 
+                                            class="btn btn-danger btn-small"
+                                            onclick="return confirm('Supprimer cette inscription ?')">
+                                            Supprimer
+                                            </a>
+
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php } ?>
-                            </tbody>
+
+                        <?php } ?>
+
+                        </tbody>
                         </table>
                     </div>
                 </div>
