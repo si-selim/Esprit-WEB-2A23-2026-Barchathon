@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <?php
-require_once "../../Model/Inscription.php";
+require_once "../../Controller/InscriptionController.php";
 
-$inscriptionModel = new Inscription();
+$controller = new InscriptionController();
 
 $search = isset($_GET['search_id']) ? $_GET['search_id'] : "";
 
 if ($search !== "") {
-    $liste = $inscriptionModel->rechercher($search);
+    $data = $controller->getById($search);
+    $liste = $data ? [$data] : [];
 } else {
-    $liste = $inscriptionModel->afficher();
+    $liste = $controller->getAll();
 }
 ?>
 <html lang="fr">
@@ -58,7 +59,7 @@ if ($search !== "") {
 
                 <?php } ?>
                 
-                <form method="post" action="../../Controller/InscriptionController.php" id="formInscription">
+                <form method="post" action="../../Controller/process_inscription.php">
                     <input type="hidden" id="id_inscription" name="id_inscription">
                     <div class="form-grid">
                         <div class="field-group">
@@ -71,9 +72,9 @@ if ($search !== "") {
                             <label for="circuit">Circuit</label>
                             <select id="circuit" name="circuit" >
                                 <option value="">Choisir un circuit</option>
-                                <option value="10km">10 km</option>
-                                <option value="21km">21 km</option>
-                                <option value="42km">42 km</option>
+                                <option value="1">10 km</option>
+                                <option value="2">21 km</option>
+                                <option value="3">42 km</option>
                             </select>
                             <small id="error-circuit"></small>
                         </div>
@@ -95,7 +96,8 @@ if ($search !== "") {
 
                         <div class="field-group">
                             <label for="date_paiement">Date de paiement</label>
-                            <input id="date_paiement" type="date" name="date_paiement" >
+                            <input id="date_paiement" type="date" name="date_paiement"
+       value="<?php echo date('Y-m-d'); ?>">
                             <small id="error-date_paiement"></small>
                         </div>
                     </div>
@@ -113,14 +115,16 @@ if ($search !== "") {
                     
                     <div class="search-row">
                         <input id="search_id" type="number" name="search_id" placeholder="Chercher par ID">
-                        <button class="btn btn-secondary" type="button" onclick="rechercher()">Rechercher</button>                   
+                                           
                      </div>
 
                     <div class="action-buttons">
                     <button class="btn btn-outlined" type="submit" name="action" value="update">
                         Modifier
                     </button>                     
-                    <button class="btn btn-secondary" type="button">Valider paiement</button>
+                    <a href="export_all_inscriptions.php" class="btn btn-primary">
+                        Exporter toutes les inscriptions (PDF)
+                    </a>
                     </div>
                 </form>
 
@@ -143,7 +147,7 @@ if ($search !== "") {
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="table-body">
 
                         <?php if(empty($liste)) { ?>
 
@@ -156,12 +160,12 @@ if ($search !== "") {
                         <?php } else { ?>
 
                             <?php foreach($liste as $row) { ?>
-                                <tr>
+                                <tr data-id="<?php echo $row['id_inscription']; ?>">
                                     <td><?php echo $row['date_inscription']; ?></td>
                                     <td><?php echo $row['mode_de_paiement']; ?></td>
                                     <td><?php echo $row['id_parcours']; ?></td>
                                     <td><?php echo $row['nb_personnes']; ?></td>
-                                    <td><?php echo $row['date_paiement']; ?></td>
+                                    <td><?php echo date("Y-m-d", strtotime($row['date_paiement'])); ?></td>
 
                                     <td>
                                         <div class="table-actions">
@@ -182,11 +186,11 @@ if ($search !== "") {
                                             Voir dossard
                                             </a>
 
-                                            <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&from=front" 
-                                            class="btn btn-danger btn-small"
-                                            onclick="return confirm('Supprimer cette inscription ?')">
-                                            Supprimer
-                                            </a>
+                                            <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&redirect=front_inscription" 
+   class="btn btn-danger"
+   onclick="return confirm('Supprimer ?')">
+   Supprimer
+</a>
 
                                         </div>
                                     </td>

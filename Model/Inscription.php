@@ -2,56 +2,43 @@
 
 class Inscription {
 
-    private $conn;
+    private ?int $id_inscription;
+    private ?int $nb_personnes;
+    private ?string $mode_paiement;
+    private ?string $date_paiement;
+    private ?int $id_parcours;
+    private ?int $id_user;
 
-    public function __construct() {
-        $this->conn = new PDO("mysql:host=localhost;dbname=projetwebinscription+dossard", "root", "");
+    public function __construct(
+        ?int $id_inscription = null,
+        ?int $nb_personnes = null,
+        ?string $mode_paiement = null,
+        ?string $date_paiement = null,
+        ?int $id_parcours = null,
+        ?int $id_user = null
+    ) {
+        $this->id_inscription = $id_inscription;
+        $this->nb_personnes = $nb_personnes;
+        $this->mode_paiement = $mode_paiement;
+        $this->date_paiement = $date_paiement;
+        $this->id_parcours = $id_parcours;
+        $this->id_user = $id_user;
     }
 
-    public function ajouter($nb, $mode, $date_paiement, $id_parcours, $id_user) {
+    // GETTERS
+    public function getIdInscription(): ?int { return $this->id_inscription; }
+    public function getNbPersonnes(): ?int { return $this->nb_personnes; }
+    public function getModePaiement(): ?string { return $this->mode_paiement; }
+    public function getDatePaiement(): ?string { return $this->date_paiement; }
+    public function getIdParcours(): ?int { return $this->id_parcours; }
+    public function getIdUser(): ?int { return $this->id_user; }
 
-        $sql = "INSERT INTO inscription 
-                (nb_personnes, mode_de_paiement, date_inscription, date_paiement, id_user, id_parcours) 
-                VALUES (?, ?, NOW(), ?, ?, ?)";
-
-        $stmt = $this->conn->prepare($sql);
-        return $stmt->execute([$nb, $mode, $date_paiement, $id_user, $id_parcours]);
-    }
-    public function afficher() {
-    $sql = "SELECT * FROM inscription ORDER BY id_inscription DESC";
-    $stmt = $this->conn->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    public function supprimer($id)
-{
-    $sql = "DELETE FROM inscription WHERE id_inscription = ?";
-    $stmt = $this->conn->prepare($sql);
-    return $stmt->execute([$id]);
-}
-    public function modifier($id, $nb, $mode, $date_paiement, $id_parcours) {
-
-    $sql = "UPDATE inscription 
-            SET nb_personnes = ?, 
-                mode_de_paiement = ?, 
-                date_paiement = ?, 
-                id_parcours = ?
-            WHERE id_inscription = ?";
-
-    $stmt = $this->conn->prepare($sql);
-    return $stmt->execute([$nb, $mode, $date_paiement, $id_parcours, $id]);
-}
-    public function rechercher($id) {
-    $sql = "SELECT * FROM inscription WHERE id_inscription = ?";
-    $stmt = $this->conn->prepare($sql);
-    $stmt->execute([$id]);
-
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    return $result ? $result : [];
-}
-    public function getLastId() {
-    return $this->conn->lastInsertId();
-}
-    
+    // SETTERS
+    public function setIdInscription($id) { $this->id_inscription = $id; }
+    public function setNbPersonnes($nb) { $this->nb_personnes = $nb; }
+    public function setModePaiement($mode) { $this->mode_paiement = $mode; }
+    public function setDatePaiement($date) { $this->date_paiement = $date; }
+    public function setIdParcours($id) { $this->id_parcours = $id; }
+    public function setIdUser($id) { $this->id_user = $id; }
 }
 ?>

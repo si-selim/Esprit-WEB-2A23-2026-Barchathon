@@ -1,29 +1,38 @@
-<!DOCTYPE html>
 <?php
-require_once "../../Model/Inscription.php";
-require_once "../../Model/Dossard.php";
+require_once "../../Controller/DossardController.php";
+require_once "../../Controller/InscriptionController.php";
 
-$id = isset($_GET['id_inscription']) ? $_GET['id_inscription'] : 0;
+$id = $_GET['id_inscription'] ?? 0;
 
-$model = new Inscription();
-$data = $model->rechercher($id);
-$nbFromInscription = $data ? $data[0]['nb_personnes'] : 1;
+$inscriptionController = new InscriptionController();
+$dossardController = new DossardController();
 
-$dossardModel = new Dossard();
-$start = 0;
+// inscription
+$data = $inscriptionController->getById($id);
+$nbFromInscription = $data['nb_personnes'] ?? 1;
 
+// dossards existants
+$dossardsExistants = $dossardController->getByInscription($id);
 
-$dossardsExistants = $dossardModel->afficherParInscription($id);
+// nombre existant
 $nbExistants = count($dossardsExistants);
 
+// total lignes à afficher
+$total = max($nbFromInscription, $nbExistants);
 
+// nom global
+$nom_global = $dossardsExistants[0]['nom'] ?? "";
+
+// 🔥 DERNIER NUMERO GLOBAL
+$nextNumero = $dossardController->getLastNumero();
 ?>
 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Dossard</title>
-    <link rel="stylesheet" href="dossard.css">
+<meta charset="UTF-8">
+<title>Dossards</title>
+<link rel="stylesheet" href="dossard.css">
 </head>
 
 <body>
@@ -32,98 +41,104 @@ $nbExistants = count($dossardsExistants);
 
 <header class="topbar">
     <div class="brand">
-        <strong>BarchaThon</strong>
+        <div class="brand-mark">BT</div>
+        <div>
+            <strong>BarchaThon</strong>
+            <small>Dossards</small>
+        </div>
     </div>
 
     <nav class="nav-links">
-        <a href="index.php">Accueil</a>
-        <a href="listMarathons.php">Catalogue</a>
         <a href="inscription.php">Inscription</a>
     </nav>
 </header>
 
 <main class="content-grid">
 
-<section class="card card-form">
+<section class="card">
 
-<h1>Dossards</h1>
+<h1>Dossards #<?php echo $id; ?></h1>
 
 <form method="post" action="../../Controller/DossardController.php">
 
-    <!-- ID -->
-    <input type="hidden" name="id_inscription" value="<?php echo $id; ?>">
+<input type="hidden" name="id_inscription" value="<?php echo $id; ?>">
 
-    <!-- NOM GLOBAL -->
-    <div class="field-group">
-        <label>Nom (famille / équipe)</label>
-        <input type="text" name="nom_global" id="nom_global">
-        <small id="error-nom_global"></small>
-    </div>
+<!-- NOM GLOBAL -->
+<div class="field-group">
+    <label>Nom / Équipe</label>
+    <input type="text" name="nom_global" id="nom_global"
+           value="<?php echo $nom_global; ?>">
+    <small id="error-nom_global"></small>
+</div>
 
-    <br>
+<!-- TABLE -->
+<div class="table-wrapper">
 
-    <!-- TABLE -->
-    <table border="1" cellpadding="10">
+<table>
+
+<thead>
 <tr>
     <th>Numéro</th>
     <th>Taille</th>
     <th>Couleur</th>
 </tr>
+</thead>
 
-<?php for($i=0; $i<$nbFromInscription; $i++) { ?>
+<tbody>
+
+<?php for ($i = 0; $i < $total; $i++) {
+
+    // 🔥 NUMÉROTATION GLOBALE
+    if (isset($dossardsExistants[$i])) {
+        $numero = $dossardsExistants[$i]['numero'];
+    } else {
+        $nextNumero++;
+        $numero = $nextNumero;
+    }
+?>
 
 <tr>
 
     <!-- NUMERO -->
     <td>
-    <?php 
-        if(isset($dossardsExistants[$i])) {
-            echo $dossardsExistants[$i]['numero'];
-            $numero = $dossardsExistants[$i]['numero'];
-        } else {
-            $numero = $i + 1;
-            echo $numero;
-        }
-    ?>
-    <input type="hidden" name="numero[]" value="<?php echo $numero; ?>">
+        <?php echo $numero; ?>
+        <input type="hidden" name="numero[]" value="<?php echo $numero; ?>">
     </td>
 
+    <!-- TAILLE -->
     <td>
-<select name="taille[]" class="taille">
-    <option value="">--Choisir--</option>
-    <option value="S" <?php if(isset($dossardsExistants[$i]) && $dossardsExistants[$i]['taille']=="S") echo "selected"; ?>>S</option>
-    <option value="M" <?php if(isset($dossardsExistants[$i]) && $dossardsExistants[$i]['taille']=="M") echo "selected"; ?>>M</option>
-    <option value="L" <?php if(isset($dossardsExistants[$i]) && $dossardsExistants[$i]['taille']=="L") echo "selected"; ?>>L</option>
-    <option value="XL" <?php if(isset($dossardsExistants[$i]) && $dossardsExistants[$i]['taille']=="XL") echo "selected"; ?>>XL</option>
-</select>
-
-
-<small class="error-taille"></small>
-
-</td>
+        <select name="taille[]" class="taille">
+            <option value="">--Choisir--</option>
+            <option value="S" <?php if(($dossardsExistants[$i]['taille'] ?? '')=='S') echo "selected"; ?>>S</option>
+            <option value="M" <?php if(($dossardsExistants[$i]['taille'] ?? '')=='M') echo "selected"; ?>>M</option>
+            <option value="L" <?php if(($dossardsExistants[$i]['taille'] ?? '')=='L') echo "selected"; ?>>L</option>
+            <option value="XL" <?php if(($dossardsExistants[$i]['taille'] ?? '')=='XL') echo "selected"; ?>>XL</option>
+        </select>
+        <small class="error-taille"></small>
+    </td>
 
     <!-- COULEUR -->
     <td>
-<input type="text" name="couleur[]" class="couleur"
-value="<?php echo isset($dossardsExistants[$i]) ? $dossardsExistants[$i]['couleur'] : ''; ?>">
+        <input type="text" name="couleur[]" class="couleur"
+               value="<?php echo $dossardsExistants[$i]['couleur'] ?? ''; ?>">
+        <small class="error-couleur"></small>
+    </td>
 
-
-<small class="error-couleur"></small>
-
-</td>
 </tr>
 
 <?php } ?>
 
+</tbody>
 </table>
-    <br>
 
-    <!-- BOUTON -->
-    <div class="add-button-row">
-        <button type="submit" class="btn btn-primary">
-            Enregistrer les dossards
-        </button>
-    </div>
+</div>
+
+<!-- BUTTON -->
+<div class="add-button-row">
+    <button type="submit" class="btn btn-primary">
+        Enregistrer
+    </button>
+</div>
 
 </form>
 
@@ -133,7 +148,6 @@ value="<?php echo isset($dossardsExistants[$i]) ? $dossardsExistants[$i]['couleu
 
 </div>
 
-<!-- JS -->
 <script src="dossard.js"></script>
 
 </body>

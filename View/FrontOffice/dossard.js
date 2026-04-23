@@ -1,13 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     const form = document.querySelector("form");
+    if (!form) return;
 
-    let nom = document.getElementById("nom_global");
-    let couleurs = document.querySelectorAll(".couleur");
-    let tailles = document.querySelectorAll(".taille");
+    const nom = document.getElementById("nom_global");
 
     // ================= NOM =================
     function validateNom() {
+        if (!nom) return true;
+
         let error = document.getElementById("error-nom_global");
 
         if (nom.value.trim() === "") {
@@ -29,7 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function validateCouleur() {
         let valid = true;
 
-        couleurs.forEach(c => {
+        document.querySelectorAll(".couleur").forEach(c => {
+
             let error = c.parentElement.querySelector(".error-couleur");
 
             if (c.value.trim() === "") {
@@ -53,7 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function validateTaille() {
         let valid = true;
 
-        tailles.forEach(t => {
+        document.querySelectorAll(".taille").forEach(t => {
+
             let error = t.parentElement.querySelector(".error-taille");
 
             if (t.value === "") {
@@ -74,28 +77,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ================= EVENTS =================
-    nom.addEventListener("input", validateNom);
+    if (nom) nom.addEventListener("input", validateNom);
 
-    couleurs.forEach(c => {
+    document.querySelectorAll(".couleur").forEach(c => {
         c.addEventListener("input", validateCouleur);
     });
 
-    tailles.forEach(t => {
+    document.querySelectorAll(".taille").forEach(t => {
         t.addEventListener("change", validateTaille);
     });
 
     // ================= SUBMIT =================
     form.addEventListener("submit", function (e) {
 
-        let v1 = validateNom();
-        let v2 = validateCouleur();
-        let v3 = validateTaille();
+        let okNom = validateNom();
+        let okCouleur = validateCouleur();
+        let okTaille = validateTaille();
 
-        if (!v1 || !v2 || !v3) {
-            e.preventDefault(); // bloque seulement si erreur
-            alert("Vérifie tous les champs !");
+        if (!okNom || !okCouleur || !okTaille) {
+            e.preventDefault();
+            alert("❌ Vérifie tous les champs !");
         } else {
-            alert("Dossards enregistrés !");
+            alert("✅ Dossards enregistrés !");
         }
     });
 

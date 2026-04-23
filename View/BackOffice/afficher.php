@@ -1,12 +1,8 @@
 <?php
-require_once "../../Model/Inscription.php";
-require_once "../../Model/Dossard.php";
+require_once "../../Controller/InscriptionController.php";
 
-$inscriptionModel = new Inscription();
-$liste = $inscriptionModel->afficher();
-
-$dossardModel = new Dossard();
-$dossards = $dossardModel->afficherTous();
+$controller = new InscriptionController();
+$liste = $controller->getAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -170,16 +166,15 @@ $dossards = $dossardModel->afficherTous();
                         <td><?php echo $row['date_paiement']; ?></td>
 
                         <td class="table-actions">
-                                <a href="../FrontOffice/voirDossard.php?id_inscription=<?php echo $row['id_inscription']; ?>" 
-                                class="btn btn-secondary">
-                                Voir dossard
-                                </a>
+                                <a href="voirDossardBack.php?id_inscription=<?php echo $row['id_inscription']; ?>" class="btn btn-secondary">
+    Voir dossard
+</a>
 
-                                <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>"
-                                class="btn btn-danger"
-                                onclick="return confirm('Supprimer ?')">
-                                Supprimer
-                                </a>
+                                <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&redirect=back_afficher"
+   class="btn btn-danger"
+   onclick="return confirm('Supprimer ?')">
+   Supprimer
+</a>
                             </td>
                     </tr>
                 <?php } ?>

@@ -1,12 +1,11 @@
 <?php
-require_once "../../Model/Inscription.php";
-require_once "../../Model/Dossard.php";
+require_once "../../Controller/InscriptionController.php";
 
-$inscriptionModel = new Inscription();
-$liste = $inscriptionModel->afficher();
 
-$dossardModel = new Dossard();
-$dossards = $dossardModel->afficherTous();
+$controller = new InscriptionController();
+$liste = $controller->getAll();
+
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -175,7 +174,7 @@ $dossards = $dossardModel->afficherTous();
                                 Voir dossard
                                 </a>
 
-                                <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>" 
+                                <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&redirect=front_afficher" 
                                 class="btn btn-danger"
                                 onclick="return confirm('Supprimer ?')">
                                 Supprimer
