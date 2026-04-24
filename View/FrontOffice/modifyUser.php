@@ -23,7 +23,7 @@ if (!$user) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier mon profil</title>
-    <link rel="stylesheet" href="/main/View/assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .feedback { display:block; font-size:0.82rem; margin-top:4px; min-height:1.2em; }
         .feedback.error { color:#b42318; }
@@ -121,7 +121,7 @@ if (!$user) {
         </div>
     </div>
 
-    <script src="/main/View/assets/js/app.js"></script>
+    <script src="../assets/js/app.js"></script>
     <script src="user.js"></script>
 </body>
 </html>

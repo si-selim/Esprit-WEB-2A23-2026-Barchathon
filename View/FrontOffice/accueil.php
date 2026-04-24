@@ -22,7 +22,7 @@ $role = $user['role'] ?? 'visiteur';
         body { font-family:"Segoe UI",sans-serif; color:var(--ink); background:#fdfaf4; }
         .page { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:36px 0 0; }
 
-        /* HERO */
+     
         .hero {
             background:linear-gradient(135deg,#102a43 0%,#0f766e 100%);
             border-radius:32px; padding:60px 52px;
@@ -54,22 +54,67 @@ $role = $user['role'] ?? 'visiteur';
         .stat-val { font-size:2.8rem; font-weight:900; color:var(--teal); line-height:1; }
         .stat-lbl { color:#627d98; font-size:0.92rem; margin-top:8px; font-weight:600; }
 
-        /* FEATURES */
-        .features-section { margin-bottom:0; }
-        .features-section h2 { font-size:1.6rem; font-weight:900; margin-bottom:22px; }
-        .features { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
-        .feature-card {
-            background:white; border-radius:22px; padding:32px 24px;
-            box-shadow:0 8px 24px rgba(16,42,67,.07); border:1px solid rgba(16,42,67,.06);
-            text-align:center; transition:transform .2s,box-shadow .2s;
-        }
-        .feature-card:hover { transform:translateY(-4px); box-shadow:0 16px 36px rgba(16,42,67,.12); }
-        .feature-card i { font-size:2.4rem; color:var(--teal); margin-bottom:16px; display:block; }
-        .feature-card h3 { font-size:1.15rem; margin-bottom:10px; }
-        .feature-card p { color:#627d98; line-height:1.7; font-size:0.93rem; }
+       /* FEATURES */
+.features-section { margin-bottom: 0; }
 
-        @media(max-width:900px){ .stats-bar{grid-template-columns:repeat(2,1fr);} }
-        @media(max-width:768px){ .hero{grid-template-columns:1fr;padding:36px 24px;} .hero-img{display:none;} }
+.features-section h2 { 
+    font-size: 1.6rem; 
+    font-weight: 900; 
+    margin-bottom: 22px; 
+}
+
+.features { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 20px; 
+}
+
+.feature-card {
+    background: white; 
+    border-radius: 22px; 
+    padding: 32px 24px;
+    box-shadow: 0 8px 24px rgba(16, 42, 67, .07); 
+    border: 1px solid rgba(16, 42, 67, .06);
+    text-align: center; 
+    transition: transform .2s, box-shadow .2s;
+}
+
+.feature-card:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 16px 36px rgba(16, 42, 67, .12); 
+}
+
+.feature-card i { 
+    font-size: 2.4rem; 
+    color: var(--teal); 
+    margin-bottom: 16px; 
+    display: block; 
+}
+
+.feature-card h3 { 
+    font-size: 1.15rem; 
+    margin-bottom: 10px; 
+}
+
+.feature-card p { 
+    /* J'ai supprimé la couleur pour ne pas changer le style original */
+    line-height: 1.7; 
+    font-size: 1.1rem; /* Augmenté de 0.93rem à 1.1rem pour plus de lisibilité */
+}
+
+/* Responsivité */
+@media(max-width:900px){ .stats-bar{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:768px){ .hero{grid-template-columns:1fr;padding:36px 24px;} .hero-img{display:none;} }
+.features-text {
+    font-size: 1.25rem !important; /* On augmente significativement la taille */
+    line-height: 1.8 !important;   /* On aère pour donner une impression d'espace */
+}
+
+/* Si vous voulez aussi que le titre au-dessus soit plus grand */
+.features-section h1 {
+    font-size: 2.5rem !important;
+    margin-bottom: 25px;
+}
     </style>
 </head>
 <body>
@@ -120,27 +165,19 @@ $role = $user['role'] ?? 'visiteur';
         </div>
     </section>
 
-    <!-- FEATURES -->
     <section class="features-section">
-        <h2>🏅 Pourquoi BarchaThon ?</h2>
-        <div class="features">
-            <div class="feature-card">
-                <i class="fas fa-map-location-dot"></i>
-                <h3>Parcours Détaillés</h3>
-                <p>Visualisez les tracés et les points de ravitaillement pour chaque événement.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-calendar-check" style="color:var(--sea);"></i>
-                <h3>Calendrier à jour</h3>
-                <p>Ne ratez aucune date importante avec notre calendrier synchronisé.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-medal" style="color:var(--clay);"></i>
-                <h3>Résultats Live</h3>
-                <p>Consultez vos temps directement après avoir franchi la ligne d'arrivée.</p>
-            </div>
-        </div>
-    </section>
+    <div class="container">
+        <h1>🏅 Pourquoi BarchaThon ?</h1>
+        <p class="features-text">
+           Bienvenue sur BarchaThon, votre site dédié à l’univers du running en Tunisie.
+Nous vous proposons une diversité de marathons offrant différentes expériences.
+
+Pour chaque événement, vous pouvez consulter les informations essentielles du parcours, ainsi que les stands présents tout au long de la course.
+
+En plus de découvrir les courses, notre site vous permet également d’explorer des produits liés à vos événements préférés et de gérer vos commandes facilement pour une expérience sportive complète.
+        </p>
+    </div>
+</section>
 
 </div>
 <?php require __DIR__ . '/partials/footer.php'; ?>

@@ -151,30 +151,36 @@ class MarathonController {
 }
 
     public function rechercherMarathon($search) {
-        $sql = "SELECT * FROM marathon WHERE nom_marathon LIKE :s OR organisateur_marathon LIKE :s OR region_marathon LIKE :s";
+        $sql = "SELECT * FROM marathon 
+                WHERE nom_marathon LIKE :s 
+                   OR organisateur_marathon LIKE :s 
+                   OR region_marathon LIKE :s
+                ORDER BY nom_marathon ASC";
         $db = config::getConnexion();
 
         try {
             $query = $db->prepare($sql);
             $query->execute(['s' => "%$search%"]);
-            return $query->fetchAll();
+            return $query->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             die('Error: ' . $e->getMessage());
         }
     }
 
     public function filtrerMarathon($region) {
-        $sql = "SELECT * FROM marathon WHERE region_marathon = :region";
-        $db = config::getConnexion();
+    $sql = "SELECT * FROM marathon 
+            WHERE region_marathon = :region
+            ORDER BY nom_marathon ASC";
+    $db = config::getConnexion();
 
-        try {
-            $query = $db->prepare($sql);
-            $query->execute(['region' => $region]);
-            return $query->fetchAll();
-        } catch (Exception $e) {
-            die('Error: ' . $e->getMessage());
-        }
+    try {
+        $query = $db->prepare($sql);
+        $query->execute(['region' => $region]);
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        die('Error: ' . $e->getMessage());
     }
+}
 
     public function listMarathons() {
         $sql = "SELECT * FROM marathon";

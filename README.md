@@ -1,118 +1,180 @@
-# Barchathon - Plateforme de gestion de marathons
+# BarchaThon — Plateforme de gestion de marathons
 
-Application web full-stack PHP/MySQL pour la gestion d'evenements marathon, avec un espace utilisateur (front office) et un tableau de bord administrateur (back office).
+Application web full-stack **PHP / MySQL** pour la gestion d'evenements marathon, avec un espace utilisateur (front office) et un tableau de bord administrateur (back office).
+
+---
 
 ## Structure du projet
 
 ```
 Barchathon/
-├── config/
-│   └── db.php                     # Connexion PDO a MySQL
-├── controller/
-│   ├── create_user.php            # Inscription avec photo de profil
-│   ├── update_user.php            # Mise a jour du profil utilisateur
-│   ├── delete_account.php         # Suppression du propre compte (front office)
-│   ├── delete_user.php            # Suppression par l'admin (back office)
-│   ├── read_users.php             # Liste paginee des utilisateurs (back office)
-│   ├── change_password.php        # Changement de mot de passe
-│   └── logout.php                 # Deconnexion
-├── uploads/                       # Photos de profil uploadees
-├── view/
-│   ├── assets/
-│   │   ├── css/
-│   │   │   └── style.css          # Feuille de style unifiee
-│   │   ├── js/
-│   │   │   └── app.js             # Animations, modals, effets
-│   │   └── images/
-│   │       └── logo_barchathon.jpg
-│   ├── BackOffice/
-│   │   ├── dashboard.php          # Tableau de bord admin
-│   │   └── backoffice_User.php    # Gestion des utilisateurs
-│   └── frontOffice/
-│       ├── login.php              # Connexion
-│       ├── register.php           # Inscription
-│       ├── profile.php            # Profil utilisateur
-│       └── modifyUser.php         # Modification du profil
-└── user.sql                       # Schema et donnees initiales
+├── config.php                        # Connexion PDO (classe config)
+├── config_mail.php                   # Config SMTP (charge .local.php si present)
+├── config_mail.local.php             # Identifiants SMTP reels — NON commite
+├── config_google.php                 # Config OAuth Google (charge .local.php si present)
+├── config_google.local.php           # Client ID / Secret Google — NON commite
+├── user.sql                          # Schema BDD + donnees demo
+│
+├── Controller/
+│   ├── UserController.php            # CRUD utilisateurs, Google OAuth, reset password
+│   ├── MarathonController.php        # CRUD marathons
+│   ├── ParcoursController.php        # CRUD parcours
+│   ├── CommandeController.php        # Gestion des commandes
+│   ├── LigneCommandeController.php   # Lignes de commande
+│   └── Mailer.php                    # Envoi email SMTP (STARTTLS, raw stream)
+│
+├── Model/
+│   └── User.php                      # Entite utilisateur
+│
+└── View/
+    ├── assets/
+    │   ├── css/style.css             # Feuille de style unifiee
+    │   └── js/
+    │       ├── app.js                # Animations, modals, effets
+    │       ├── theme.js              # Bascule dark / light mode
+    │       └── voice-nav.js          # Navigation vocale (Ctrl+G)
+    │
+    ├── BackOffice/
+    │   └── dashboard.php             # Tableau de bord admin
+    │
+    └── FrontOffice/
+        ├── partials/
+        │   ├── topbar.php            # Barre de navigation avec dark mode
+        │   ├── footer.php
+        │   └── session.php
+        ├── login.php                 # Connexion classique
+        ├── register.php              # Inscription avec verification email
+        ├── forgot_password.php       # Demande de reinitialisation de mot de passe
+        ├── reset_password.php        # Formulaire nouveau mot de passe (token)
+        ├── google_login.php          # Initie le flux OAuth Google
+        ├── google_callback.php       # Callback OAuth — cree / lie le compte
+        ├── face_login.php            # Connexion par reconnaissance faciale
+        ├── face_enroll.php           # Enregistrement du visage
+        ├── verify_email.php          # Verification du token email
+        ├── profile.php               # Profil utilisateur
+        ├── modifyUser.php            # Modification du profil
+        ├── accueil.php               # Page d'accueil
+        ├── listMarathons.php         # Liste des marathons
+        ├── detailMarathon.php        # Detail d'un marathon
+        ├── listParcours.php          # Liste des parcours
+        ├── marathon/                 # CRUD marathons + export PDF
+        └── parcours/                 # CRUD parcours + export PDF
 ```
+
+---
 
 ## Installation
 
 ### 1. Base de donnees
 
-Importer le fichier SQL dans MySQL :
-
 ```bash
 mysql -u root -p < user.sql
 ```
 
-Cela cree la base `barchathon` et la table `user` avec trois comptes demo.
+Cela cree la base `barchathon`, la table `user` (avec toutes les colonnes) et insere trois comptes demo.
 
-### 2. Configuration
+> Si la base existe deja, les `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` ajoutent uniquement les colonnes manquantes sans toucher aux donnees.
 
-Modifier `Barchathon/config/db.php` si necessaire (host, username, password).
+### 2. Configuration SMTP (emails)
 
-### 3. Serveur PHP
-
-Lancer un serveur de developpement depuis le dossier `Barchathon/` :
+Copier le fichier template et remplir vos identifiants :
 
 ```bash
-cd Barchathon
-php -S localhost:8000
+cp config_mail.php config_mail.local.php
 ```
 
-Acceder a l'application : `http://localhost:8000/view/frontOffice/login.php`
+Editer `config_mail.local.php` :
 
-### 4. Comptes demo
+```php
+define('MAIL_HOST',      'smtp.example.com');
+define('MAIL_PORT',      587);
+define('MAIL_USERNAME',  'vous@example.com');
+define('MAIL_PASSWORD',  'votre_mot_de_passe');
+define('MAIL_FROM',      'vous@example.com');
+define('MAIL_FROM_NAME', 'BarchaThon');
+```
 
-Les mots de passe des comptes demo correspondent au nom d'utilisateur. Pour les utiliser, recreez-les via le formulaire d'inscription ou inserez manuellement des hash bcrypt.
+### 3. Configuration Google OAuth (connexion via Google)
 
-| Nom d'utilisateur | Role         |
-|-------------------|--------------|
-| admin             | admin        |
-| organisateur      | organisateur |
-| participant       | participant  |
+1. Creer un projet sur [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Ajouter `http://localhost/Barchathon/View/FrontOffice/google_callback.php` comme URI de redirection autorisee
+3. Copier Client ID et Client Secret dans `config_google.local.php` :
+
+```php
+$GOOGLE_CLIENT_ID     = 'VOTRE_CLIENT_ID.apps.googleusercontent.com';
+$GOOGLE_CLIENT_SECRET = 'VOTRE_CLIENT_SECRET';
+```
+
+### 4. Lancer sous XAMPP
+
+Placer le dossier dans `C:\xampp\htdocs\` et acceder a :
+
+```
+http://localhost/Barchathon/View/FrontOffice/login.php
+```
+
+### 5. Comptes demo
+
+| Nom d'utilisateur | Role         | Email                      |
+|-------------------|--------------|----------------------------|
+| admin             | admin        | admin@barchathon.tn        |
+| organisateur      | organisateur | orga@barchathon.tn         |
+| participant       | participant  | participant@barchathon.tn  |
+
+---
 
 ## Fonctionnalites
 
+### Authentification
+- Inscription avec upload de photo de profil et verification par email
+- Connexion classique (nom d'utilisateur + mot de passe)
+- Connexion via Google (OAuth 2.0) — cree ou lie le compte automatiquement
+- Connexion par reconnaissance faciale (face-api.js)
+- Reinitialisation de mot de passe par email (token a usage unique, expire apres 1h)
+- Deconnexion
+
 ### Front Office (utilisateur)
-- Inscription avec upload de photo de profil
-- Connexion / deconnexion avec sessions PHP
-- Consultation du profil avec informations personnelles
-- Modification du profil et de la photo
+- Page d'accueil et navigation principale
+- Consultation et modification du profil (photo, informations personnelles)
 - Changement de mot de passe
-- Suppression du compte avec confirmation modale
+- Liste et detail des marathons et parcours
+- Gestion des commandes
 
 ### Back Office (administrateur)
-- Tableau de bord avec statistiques dynamiques (nombre d'utilisateurs, repartition par role, taux de completion)
-- Liste des utilisateurs avec pagination (5 par page)
-- Recherche par nom, email ou pays
-- Filtres par role et par pays
-- Suppression d'utilisateurs avec confirmation modale
+- Tableau de bord avec statistiques dynamiques et salutation animee
+- Liste des utilisateurs avec pagination, recherche, filtres par role / pays, tri
+- Actions rapides : modifier, bloquer / debloquer, supprimer
+- Export CSV / PDF des utilisateurs
+
+### Navigation vocale (Ctrl+G)
+- Activation / desactivation par raccourci clavier `Ctrl+G`
+- Commandes en francais pour naviguer entre les pages
+- Commandes admin : recherche, filtres, CRUD, confirmation de modals
+- Synthese vocale (fr-FR) pour le retour sonore
+- Compatible Chrome et Edge (necessite un micro)
 
 ### UI / UX
-- Design unifie avec feuille de style partagee (CSS custom properties)
-- Animations au scroll (fade-in, slide-up) via IntersectionObserver
-- Effets hover sur les cartes, boutons et elements interactifs
+- Dark mode / light mode persistant (localStorage)
+- Salutation animee avec heure en temps reel sur le dashboard
+- Design responsive (mobile, tablette, desktop)
+- Animations fade-in et transitions CSS
 - Modals de confirmation pour les actions destructives
-- Feedback visuel automatique (succes/erreur) via parametres URL
-- Responsive design (mobile, tablette, desktop)
 
 ### Securite
 - Mots de passe hashes avec `password_hash()` (bcrypt)
 - Requetes preparees PDO contre les injections SQL
-- `htmlspecialchars()` sur toutes les sorties pour prevenir le XSS
+- `htmlspecialchars()` sur toutes les sorties (XSS)
+- Verification CSRF pour le flux OAuth Google (`state` token)
+- Tokens de verification email et de reset a usage unique
 - Validation MIME et taille pour les uploads d'images
 - Verification de session et de role pour les pages protegees
 
-## Screenshots
+---
 
-_Section reservee pour les captures d'ecran de l'application._
+## Variables d'environnement / fichiers secrets
 
-| Page | Capture |
-|------|---------|
-| Login | ![Login](screenshots/login.png) |
-| Inscription | ![Register](screenshots/register.png) |
-| Profil | ![Profile](screenshots/profile.png) |
-| Dashboard admin | ![Dashboard](screenshots/dashboard.png) |
-| Gestion utilisateurs | ![Users](screenshots/users.png) |
+| Fichier                  | Contenu                        | Commite ? |
+|--------------------------|--------------------------------|-----------|
+| `config_mail.local.php`  | Identifiants SMTP              | Non       |
+| `config_google.local.php`| Client ID / Secret Google      | Non       |
+| `View/FrontOffice/images/uploads/` | Photos de profil      | Non       |

@@ -15,7 +15,16 @@ if (!$m) { header('Location: listMarathons.php'); exit; }
 $tousParcours = $pCtrl->afficherParcours();
 $parcoursDuMarathon = array_values(array_filter($tousParcours, fn($p) => $p['id_marathon'] == $id));
 
-// Stands fictifs pour la démo (remplacer par vrais données quand table ready)
+// Search & filter for parcours
+$searchParcours = $_GET['search_parcours'] ?? '';
+$filterDiff = $_GET['difficulte'] ?? '';
+if ($searchParcours !== '') {
+    $parcoursDuMarathon = array_values(array_filter($parcoursDuMarathon, fn($p) => stripos($p['nom_parcours'], $searchParcours) !== false));
+}
+if ($filterDiff !== '') {
+    $parcoursDuMarathon = array_values(array_filter($parcoursDuMarathon, fn($p) => $p['difficulte'] === $filterDiff));
+}
+
 $standsDemo = [
     ['id_stand'=>1,'nom_stand'=>'Stand Ravitaillement','position'=>'Km 5','description'=>'Eau, boissons énergétiques et fruits'],
     ['id_stand'=>2,'nom_stand'=>'Stand Médical','position'=>'Km 10','description'=>'Premiers secours et assistance médicale'],
@@ -39,10 +48,18 @@ $role = $user['role'] ?? 'visiteur';
         body { font-family:"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(180deg,#fff9ef,#f2fbfb); }
         .page { width:min(1140px,calc(100% - 32px)); margin:0 auto; padding:28px 0 0; }
 
-        /* BACK */
-        .back-link { display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--teal); font-weight:700; margin-bottom:20px; padding:9px 16px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(16,42,67,.07); font-size:0.92rem; }
+        .back-link { display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--teal); font-weight:700; margin-bottom:16px; padding:9px 16px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(16,42,67,.07); font-size:0.92rem; }
 
-        /* HERO compact */
+        /* INSCRIPTION BANNER - top */
+        .inscription-banner { border-radius:20px; padding:22px 28px; margin-bottom:22px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+        .inscription-banner.visitor { background:linear-gradient(135deg,#102a43,#1e3a5f); color:white; }
+        .inscription-banner.participant { background:linear-gradient(135deg,#102a43,#1e3a5f); color:white; }
+        .insc-text h3 { font-size:1.2rem; margin-bottom:4px; }
+        .insc-text p { opacity:.88; font-size:0.9rem; }
+        .btn-inscription, .btn-login-insc { display:inline-block; background:linear-gradient(135deg,var(--teal),#14b8a6); color:white; padding:12px 28px; border-radius:12px; font-weight:900; font-size:0.97rem; text-decoration:none; box-shadow:0 6px 18px rgba(15,118,110,.3); transition:transform .15s; white-space:nowrap; border:2px solid rgba(255,255,255,.3); }
+        .btn-inscription:hover, .btn-login-insc:hover { transform:translateY(-2px); }
+        .btn-inscription-disabled { display:inline-block; background:rgba(255,255,255,.2); color:rgba(255,255,255,.7); padding:12px 28px; border-radius:12px; font-weight:900; font-size:0.97rem; cursor:not-allowed; white-space:nowrap; }
+
         .detail-hero {
             display:grid; grid-template-columns:1fr 1fr; gap:0;
             background:white; border-radius:28px; overflow:hidden;
@@ -56,7 +73,14 @@ $role = $user['role'] ?? 'visiteur';
         .meta-row .icon { width:32px; height:32px; border-radius:10px; background:rgba(15,118,110,.1); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
         .meta-row .label { color:#627d98; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
         .meta-row .value { font-weight:700; color:var(--ink); }
-        .price-block { background:linear-gradient(135deg,#fff9ef,#fff); border:1px solid rgba(255,183,3,.3); border-radius:16px; padding:16px 18px; }
+        .price-block {
+  background: linear-gradient(135deg, #fff9ef, #fff);
+  border: 1px solid rgba(255, 183, 3, .2);
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 0.75rem;
+  line-height: 1;
+}
         .price-label { font-size:0.8rem; color:#627d98; font-weight:700; text-transform:uppercase; margin-bottom:4px; }
         .price-val { font-size:2.2rem; font-weight:900; color:var(--coral); }
         .detail-img { position:relative; max-height:380px; overflow:hidden; }
@@ -66,15 +90,26 @@ $role = $user['role'] ?? 'visiteur';
         .places-ok { background:rgba(16,185,129,.85); color:white; }
         .places-no { background:rgba(231,111,81,.85); color:white; }
 
-        /* SECTION TITLE */
-        .section-h { display:flex; align-items:center; gap:12px; margin:28px 0 18px; }
-        .section-h h2 { font-size:1.45rem; font-weight:900; }
+        .section-h { display:flex; align-items:center; gap:12px; margin:0 0 16px; flex-wrap:wrap; }
+        .section-h h2 { font-size:1.4rem; font-weight:900; }
         .section-h .count { background:rgba(15,118,110,.1); color:var(--teal); border-radius:999px; padding:4px 13px; font-size:0.88rem; font-weight:700; }
 
-        /* GRID COTE A COTE */
-        .two-col { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:28px; }
+        /* Parcours filter bar */
+        .parcours-filter { background:white; border-radius:14px; padding:14px 16px; margin-bottom:18px; box-shadow:0 4px 14px rgba(16,42,67,.06); display:flex; gap:10px; flex-wrap:wrap; }
+        .parcours-filter select { border-radius:10px; border:1px solid #cbd5e1; padding:9px 13px; font:inherit; flex:1 1 130px; min-width:0; max-width:200px; font-size:0.9rem; }
+        .parcours-filter select:focus { outline:none; border-color:var(--teal); }
+        /* Autocomplete for parcours */
+        .p-search-wrap { position:relative; flex:2 1 200px; min-width:0; }
+        .p-search-wrap input { width:100%; border-radius:10px; border:1px solid #cbd5e1; padding:9px 13px; font:inherit; font-size:0.9rem; }
+        .p-search-wrap input:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(15,118,110,.1); }
+        .p-autocomplete-list { position:absolute; top:calc(100% + 4px); left:0; right:0; background:white; border:1px solid #cbd5e1; border-radius:11px; box-shadow:0 8px 20px rgba(16,42,67,.1); z-index:999; max-height:200px; overflow-y:auto; display:none; }
+        .p-autocomplete-list.open { display:block; }
+        .p-auto-item { padding:9px 14px; cursor:pointer; font-size:0.9rem; border-bottom:1px solid #f1f5f9; }
+        .p-auto-item:last-child { border-bottom:none; }
+        .p-auto-item:hover, .p-auto-item.selected { background:#f0fdf9; color:var(--teal); font-weight:700; }
 
-        /* PARCOURS CARDS */
+        .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-bottom:36px; }
+
         .p-card { background:white; border-radius:18px; border:1px solid rgba(16,42,67,.07); box-shadow:0 6px 20px rgba(16,42,67,.07); overflow:hidden; transition:transform .2s; }
         .p-card:hover { transform:translateY(-3px); }
         .diff-band { padding:9px 16px; font-weight:800; font-size:0.83rem; letter-spacing:.04em; }
@@ -87,7 +122,6 @@ $role = $user['role'] ?? 'visiteur';
         .dist-row { display:flex; justify-content:space-between; align-items:center; }
         .dist-val { font-size:1.35rem; font-weight:900; color:var(--teal); }
 
-        /* STAND CARDS */
         .s-card { background:white; border-radius:18px; border:1px solid rgba(16,42,67,.07); box-shadow:0 6px 20px rgba(16,42,67,.07); overflow:hidden; transition:transform .2s; }
         .s-card:hover { transform:translateY(-3px); }
         .stand-header { background:linear-gradient(135deg,#102a43,#1e3a5f); padding:14px 16px; color:white; }
@@ -98,7 +132,20 @@ $role = $user['role'] ?? 'visiteur';
         .btn-produits { display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,var(--teal),#14b8a6); color:white; border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.85rem; cursor:pointer; text-decoration:none; transition:transform .15s; }
         .btn-produits:hover { transform:translateY(-1px); }
 
-        /* MODAL PRODUITS */
+        /* ── Boutons généraux (manquants dans le fichier original) ── */
+        .btn { text-decoration:none; padding:10px 15px; border-radius:12px; font-weight:700; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:0.9rem; transition:opacity .15s,transform .15s,box-shadow .15s; }
+        .btn:hover { opacity:.9; transform:translateY(-1px); }
+        .btn-primary { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; box-shadow:0 4px 14px rgba(22,163,74,.3); }
+        .btn-primary:hover { box-shadow:0 6px 18px rgba(22,163,74,.4); }
+        .btn-outline { background:linear-gradient(135deg,#1a1a1a,#374151); color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+        .btn-outline:hover { box-shadow:0 6px 18px rgba(0,0,0,.35); }
+        /* Boutons dans les cartes Parcours */
+        .btn-mod { display:inline-flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; background:linear-gradient(135deg,#cbd5e1,#e2e8f0); color:#475569; border-radius:10px; font-weight:700; font-size:0.85rem; border:0; cursor:pointer; transition:opacity .15s,transform .15s,box-shadow .15s; box-shadow:0 3px 10px rgba(203,213,225,.4); }
+        .btn-mod:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 5px 14px rgba(203,213,225,.5); }
+        .btn-del-card { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border-radius:10px; font-weight:700; font-size:0.85rem; border:0; cursor:pointer; transition:opacity .15s,transform .15s,box-shadow .15s; box-shadow:0 3px 10px rgba(220,38,38,.3); }
+        .btn-del-card:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 5px 14px rgba(220,38,38,.4); }
+
+        /* MODAL */
         .modal-overlay { display:none; position:fixed; inset:0; background:rgba(16,42,67,.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
         .modal-overlay.open { display:flex; }
         .modal { background:white; border-radius:24px; padding:28px; width:min(540px,calc(100% - 32px)); max-height:80vh; overflow-y:auto; box-shadow:0 24px 60px rgba(16,42,67,.2); }
@@ -112,17 +159,20 @@ $role = $user['role'] ?? 'visiteur';
         .stock-ok { color:#059669; font-weight:700; }
         .stock-no { color:var(--coral); font-weight:700; }
 
-        /* INSCRIPTION */
-        .inscription-section { background:linear-gradient(135deg,#102a43,#0f766e); border-radius:24px; padding:32px; text-align:center; color:white; margin-bottom:0; }
-        .inscription-section h2 { font-size:1.6rem; margin-bottom:10px; }
-        .inscription-section p { opacity:.88; margin-bottom:22px; line-height:1.6; }
-        .btn-inscription { display:inline-block; background:linear-gradient(135deg,var(--sun),#f59e0b); color:var(--ink); padding:15px 36px; border-radius:14px; font-weight:900; font-size:1.05rem; text-decoration:none; box-shadow:0 8px 24px rgba(255,183,3,.4); transition:transform .15s; }
-        .btn-inscription:hover { transform:translateY(-2px); }
-        .btn-inscription-disabled { display:inline-block; background:#e2e8f0; color:#94a3b8; padding:15px 36px; border-radius:14px; font-weight:900; font-size:1.05rem; cursor:not-allowed; }
-
-        .empty-box { background:white; border-radius:16px; padding:28px; text-align:center; color:#627d98; font-size:0.93rem; }
-
-        @media(max-width:860px){ .detail-hero,.two-col{grid-template-columns:1fr;} .detail-img{max-height:250px;} }
+        .empty-box { background:white; border-radius:16px; padding:28px; text-align:center; color:#627d98; font-size:0.93rem; grid-column:1/-1; }
+        /* Modal box */
+        .modal-box { background:#fff; border-radius:20px; padding:32px 28px; width:min(420px,calc(100% - 32px)); text-align:center; box-shadow:0 24px 60px rgba(16,42,67,.2); }
+        .modal-icon { font-size:2.8rem; margin-bottom:12px; }
+        .modal-box h3 { font-size:1.25rem; font-weight:800; color:#102a43; margin-bottom:8px; }
+        .modal-box p { color:#627d98; margin-bottom:4px; font-size:0.95rem; }
+        /* Modal buttons */
+        .modal-btns { display:flex; gap:10px; margin-top:22px; }
+        .btn-confirm-del { flex:1; background:#e76f51; color:#fff; border:0; border-radius:10px; padding:11px; font-weight:700; font-size:0.92rem; cursor:pointer; transition:opacity .15s; }
+        .btn-confirm-del:hover { opacity:.9; }
+        .btn-cancel { flex:1; background:#f1f5f9; color:#102a43; border:0; border-radius:10px; padding:11px; font-weight:700; font-size:0.92rem; cursor:pointer; transition:opacity .15s; }
+        .btn-cancel:hover { opacity:.8; }
+        @media(max-width:860px){ .detail-hero{grid-template-columns:1fr;} .detail-img{max-height:250px;} }
+        @media(max-width:600px){ .inscription-banner{flex-direction:column;} }
     </style>
 </head>
 <body>
@@ -130,7 +180,30 @@ $role = $user['role'] ?? 'visiteur';
 <div class="page">
     <a class="back-link" href="listMarathons.php">← Retour au catalogue</a>
 
-    <!-- HERO compact : info à gauche, image à droite -->
+    <!-- INSCRIPTION BANNER - TOP -->
+    <?php if ($role === 'visiteur'): ?>
+    <div class="inscription-banner visitor">
+        <div class="insc-text">
+            <h3>🏆 Prêt(e) à participer ?</h3>
+            <p>Connectez-vous pour vous inscrire à <?php echo htmlspecialchars($m['nom_marathon']); ?>.</p>
+        </div>
+        <a href="#p" class="btn-login-insc">Participer</a>
+    </div>
+    <?php elseif ($role === 'participant'): ?>
+    <div class="inscription-banner participant">
+        <div class="insc-text">
+            <h3>🏆 Prêt(e) à participer ?</h3>
+            <p>Rejoignez les coureurs et inscrivez-vous dès maintenant à <?php echo htmlspecialchars($m['nom_marathon']); ?>.</p>
+        </div>
+        <?php if ($m['nb_places_dispo'] > 0): ?>
+            <a href="register.php" class="btn-inscription">Participer</a>
+        <?php else: ?>
+            <span class="btn-inscription-disabled">❌ Marathon complet</span>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- DETAIL HERO -->
     <div class="detail-hero">
         <div class="detail-info">
             <div>
@@ -174,135 +247,202 @@ $role = $user['role'] ?? 'visiteur';
         </div>
     </div>
 
-    <!-- PARCOURS + STANDS côte à côte -->
+    <!-- PARCOURS SECTION -->
     <div class="section-h">
         <h2>🗺️ Parcours</h2>
-        <span class="count"><?php echo count($parcoursDuMarathon); ?></span>
-        <span style="margin-left:auto;"></span>
-        <h2 style="margin-left:calc(50% + 11px);">🏪 Stands</h2>
-        <span class="count"><?php echo count($standsDemo); ?></span>
+        <span class="count" id="parcoursCount"><?php
+            $allParcoursDuMarathon = array_values(array_filter($pCtrl->afficherParcours(), fn($p) => $p['id_marathon'] == $id));
+            echo count($allParcoursDuMarathon);
+        ?></span>
     </div>
 
-    <div class="two-col">
-        <!-- COLONNE PARCOURS -->
-        <div style="display:grid;gap:14px;align-content:start;">
-            <?php if (empty($parcoursDuMarathon)): ?>
-                <div class="empty-box">🗺️ Aucun parcours enregistré pour ce marathon.</div>
-            <?php else: ?>
-                <?php foreach ($parcoursDuMarathon as $p):
-                    $dc = ['facile'=>'diff-facile','moyen'=>'diff-moyen','difficile'=>'diff-difficile'][$p['difficulte']]??'diff-moyen';
-                    $dl = ['facile'=>'🟢 Facile','moyen'=>'🟡 Moyen','difficile'=>'🔴 Difficile'][$p['difficulte']]??$p['difficulte'];
-                ?>
-                <div class="p-card">
-                    <div class="diff-band <?php echo $dc; ?>"><?php echo $dl; ?></div>
-                    <div class="p-body">
-                        <h3><?php echo htmlspecialchars($p['nom_parcours']); ?></h3>
-                        <div class="p-route">
-                            <span>📍 <strong>Départ :</strong> <?php echo htmlspecialchars($p['point_depart']); ?></span>
-                            <span>🏁 <strong>Arrivée :</strong> <?php echo htmlspecialchars($p['point_arrivee']); ?></span>
-                        </div>
-                        <div class="dist-row">
-                            <div><div class="dist-val"><?php echo number_format((float)$p['distance'],2); ?> km</div><div style="color:#627d98;font-size:.8rem;">Distance</div></div>
-                            <span style="font-size:1.8rem;">🏅</span>
-                        </div>
+    <!-- Parcours search & filter — AJAX like marathons -->
+    <div class="parcours-filter" id="parcoursFilterBar">
+        <div class="p-search-wrap">
+            <input type="text" id="searchParcours" placeholder="🔍 Rechercher par nom parcours" autocomplete="off">
+            <div class="p-autocomplete-list" id="pAutocompleteList"></div>
+        </div>
+        <select id="diffSelect">
+            <option value="">Toutes les difficultés</option>
+            <option value="facile">🟢 Facile</option>
+            <option value="moyen">🟡 Moyen</option>
+            <option value="difficile">🔴 Difficile</option>
+        </select>
+    </div>
+
+    <?php if ($role === 'organisateur'): ?>
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;justify-content:flex-end;">
+        <a href="parcours/addParcours.php?marathon_id=<?php echo $id; ?>" class="btn btn-primary" style="padding:11px 20px;"><i class="fa-solid fa-plus"></i> Ajouter un parcours</a>
+    </div>
+    <?php endif; ?>
+
+    <div class="cards-grid" id="parcoursGrid">
+        <?php
+        // Initial render — same as AJAX response
+        if (empty($parcoursDuMarathon)): ?>
+            <div class="empty-box">🗺️ Aucun parcours trouvé pour ce marathon.</div>
+        <?php else:
+            foreach ($parcoursDuMarathon as $p):
+                $dc = ['facile'=>'diff-facile','moyen'=>'diff-moyen','difficile'=>'diff-difficile'][$p['difficulte']]??'diff-moyen';
+                $dl = ['facile'=>'🟢 Facile','moyen'=>'🟡 Moyen','difficile'=>'🔴 Difficile'][$p['difficulte']]??$p['difficulte'];
+        ?>
+        <div class="p-card">
+            <div class="diff-band <?php echo $dc; ?>"><?php echo $dl; ?></div>
+            <div class="p-body">
+                <h3><?php echo htmlspecialchars($p['nom_parcours']); ?></h3>
+                <div class="p-route">
+                    <span>📍 <strong>Départ :</strong> <?php echo htmlspecialchars($p['point_depart']); ?></span>
+                    <span>🏁 <strong>Arrivée :</strong> <?php echo htmlspecialchars($p['point_arrivee']); ?></span>
+                </div>
+                <div class="dist-row">
+                    <div>
+                        <div class="dist-val"><?php echo number_format((float)$p['distance'], 2); ?> km</div>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;flex-grow:1;margin-top:10px;">
+                        <a href="details.php?id=<?php echo $p['id_parcours']; ?>"
+                           style="background:linear-gradient(135deg,#149184,#0eb19d);color:white;padding:6px 15px;border-radius:20px;text-decoration:none;font-weight:bold;font-size:0.85rem;display:flex;align-items:center;gap:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                           Voir détail <span style="font-size:1.1rem;">→</span>
+                        </a>
                     </div>
                 </div>
-                <?php endforeach; ?>
+            </div>
+            <?php if ($role === 'organisateur' || $role === 'admin'): ?>
+            <div class="p-actions" style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;gap:8px;">
+                <?php if ($role === 'organisateur'): ?>
+                <a href="parcours/updateParcours.php?id=<?php echo $p['id_parcours']; ?>&redirect_marathon=<?php echo $id; ?>" class="btn-mod" style="flex:1;text-align:center;padding:9px 8px;"><i class="fa-solid fa-pen-to-square"></i> Modifier</a>
+                <?php endif; ?>
+                <button class="btn-del-card" style="flex:1;padding:9px 8px;" onclick="confirmDeleteParcours(<?php echo $p['id_parcours']; ?>, '<?php echo addslashes($p['nom_parcours']); ?>')"><i class="fa-solid fa-trash"></i> Supprimer</button>
+            </div>
             <?php endif; ?>
         </div>
-
-        <!-- COLONNE STANDS -->
-        <div style="display:grid;gap:14px;align-content:start;">
-            <?php foreach ($standsDemo as $s): ?>
-            <div class="s-card">
-                <div class="stand-header">
-                    <h3>🏪 <?php echo htmlspecialchars($s['nom_stand']); ?></h3>
-                    <div class="stand-pos">📍 Position : <?php echo htmlspecialchars($s['position']); ?></div>
-                </div>
-                <div class="s-body">
-                    <div class="s-desc"><?php echo htmlspecialchars($s['description']); ?></div>
-                    <a href="#" class="btn-produits" onclick="openProduits(<?php echo $s['id_stand']; ?>,this);return false;">
-                        <i class="fas fa-box-open"></i> Voir catalogue produits
-                    </a>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <!-- SECTION INSCRIPTION -->
-    <div class="inscription-section">
-        <h2>🏆 Prêt(e) à participer ?</h2>
-        <p>Rejoignez les coureurs et inscrivez-vous dès maintenant à <?php echo htmlspecialchars($m['nom_marathon']); ?>.</p>
-        <?php if ($m['nb_places_dispo'] > 0): ?>
-            <a href="#" class="btn-inscription">S'inscrire à ce marathon</a>
-        <?php else: ?>
-            <span class="btn-inscription-disabled">❌ Marathon complet</span>
-        <?php endif; ?>
+        <?php endforeach; endif; ?>
     </div>
 </div>
 
-<!-- MODAL CATALOGUE PRODUITS -->
-<div class="modal-overlay" id="modalProduits">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="modalTitle">Catalogue Produits</h3>
-            <button class="modal-close" onclick="closeProduits()">✕</button>
+<!-- MODAL SUPPRESSION PARCOURS -->
+<div class="modal-overlay" id="delParcoursModal">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <h3>Confirmer la suppression</h3>
+        <p id="delParcoursMsg"></p>
+        <div class="modal-btns">
+            <button class="btn-confirm-del" id="delParcoursConfirm">Oui, supprimer</button>
+            <button class="btn-cancel" onclick="document.getElementById('delParcoursModal').classList.remove('open')">Annuler</button>
         </div>
-        <div id="modalContent"></div>
     </div>
 </div>
-
-<?php require __DIR__ . '/partials/footer.php'; ?>
 
 <script>
-// Produits démo par stand
-const produits = {
-    1: [
-        {id:1, nom:'Eau minérale 50cl', type:'Boisson', prix:'0.50', stock:500, dispo:true},
-        {id:2, nom:'Gel énergétique', type:'Nutrition', prix:'2.50', stock:200, dispo:true},
-        {id:3, nom:'Banane', type:'Fruit', prix:'0.30', stock:150, dispo:true},
-    ],
-    2: [
-        {id:4, nom:'Kit premiers secours', type:'Médical', prix:'0.00', stock:20, dispo:true},
-        {id:5, nom:'Bande élastique', type:'Médical', prix:'3.00', stock:50, dispo:true},
-    ],
-    3: [
-        {id:6, nom:'T-shirt BarchaThon', type:'Textile', prix:'25.00', stock:100, dispo:true},
-        {id:7, nom:'Médaille finisher', type:'Récompense', prix:'0.00', stock:300, dispo:true},
-        {id:8, nom:'Casquette running', type:'Textile', prix:'18.00', stock:0, dispo:false},
-    ]
-};
+// ── AJAX parcours search + autocomplete ──────────────────────────────────────
+(function(){
+    var MARATHON_ID = <?php echo (int)$id; ?>;
+    var searchInput  = document.getElementById('searchParcours');
+    var diffSelect   = document.getElementById('diffSelect');
+    var grid         = document.getElementById('parcoursGrid');
+    var countBadge   = document.getElementById('parcoursCount');
+    var autoList     = document.getElementById('pAutocompleteList');
 
-function openProduits(standId, btn) {
-    const data = produits[standId] || [];
-    const title = btn.closest('.s-card').querySelector('h3').textContent;
-    document.getElementById('modalTitle').textContent = '🛒 ' + title.replace('🏪 ','');
-    let rows = data.map(p => `
-        <tr>
-            <td>#${p.id}</td>
-            <td><strong>${p.nom}</strong></td>
-            <td>${p.type}</td>
-            <td><strong>${p.prix} TND</strong></td>
-            <td>${p.stock}</td>
-            <td class="${p.dispo?'stock-ok':'stock-no'}">${p.dispo?'✅ En stock':'❌ Rupture'}</td>
-        </tr>
-    `).join('');
-    document.getElementById('modalContent').innerHTML = `
-        <table class="prod-table">
-            <thead><tr><th>ID</th><th>Produit</th><th>Type</th><th>Prix</th><th>Qté</th><th>Stock</th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `;
-    document.getElementById('modalProduits').classList.add('open');
+    var debounceTimer = null;
+    var selectedIndex = -1;
+    var currentSuggestions = [];
+
+    function fetchCards() {
+        var search = searchInput.value.trim();
+        var diff   = diffSelect.value;
+        fetch('search_parcours.php?mode=cards&id=' + MARATHON_ID +
+              '&search=' + encodeURIComponent(search) +
+              '&difficulte=' + encodeURIComponent(diff))
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                grid.innerHTML = data.html;
+                countBadge.textContent = data.count;
+            })
+            .catch(console.error);
+    }
+
+    function fetchSuggestions(val) {
+        if (!val) { closeAuto(); return; }
+        fetch('search_parcours.php?mode=suggestions&id=' + MARATHON_ID +
+              '&search=' + encodeURIComponent(val))
+            .then(function(r){ return r.json(); })
+            .then(function(names){
+                currentSuggestions = names;
+                selectedIndex = -1;
+                if (!names.length) { closeAuto(); return; }
+                autoList.innerHTML = names.map(function(n, i){
+                    return '<div class="p-auto-item" data-i="' + i + '">' + esc(n) + '</div>';
+                }).join('');
+                autoList.classList.add('open');
+                autoList.querySelectorAll('.p-auto-item').forEach(function(el){
+                    el.addEventListener('mousedown', function(e){
+                        e.preventDefault();
+                        searchInput.value = currentSuggestions[+this.dataset.i];
+                        closeAuto();
+                        fetchCards();
+                    });
+                });
+            })
+            .catch(console.error);
+    }
+
+    function closeAuto() {
+        autoList.classList.remove('open');
+        autoList.innerHTML = '';
+        currentSuggestions = [];
+        selectedIndex = -1;
+    }
+
+    function esc(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    searchInput.addEventListener('input', function(){
+        var val = this.value.trim();
+        clearTimeout(debounceTimer);
+        clearTimeout(searchInput._sugTimer);
+        searchInput._sugTimer = setTimeout(function(){ fetchSuggestions(val); }, 200);
+        debounceTimer = setTimeout(fetchCards, 450);
+    });
+
+    searchInput.addEventListener('keydown', function(e){
+        var items = autoList.querySelectorAll('.p-auto-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0) {
+                e.preventDefault();
+                searchInput.value = currentSuggestions[selectedIndex];
+                closeAuto(); fetchCards(); return;
+            }
+            clearTimeout(debounceTimer); closeAuto(); fetchCards(); return;
+        } else if (e.key === 'Escape') { closeAuto(); return; }
+        items.forEach(function(el, i){ el.classList.toggle('selected', i === selectedIndex); });
+    });
+
+    searchInput.addEventListener('blur', function(){ setTimeout(closeAuto, 150); });
+
+    diffSelect.addEventListener('change', function(){
+        searchInput.value = '';
+        closeAuto();
+        fetchCards();
+    });
+})();
+
+// ── Delete parcours modal ─────────────────────────────────────────────────────
+function confirmDeleteParcours(id, nom) {
+    document.getElementById('delParcoursMsg').textContent = 'Supprimer le parcours "' + nom + '" ?';
+    document.getElementById('delParcoursConfirm').onclick = function() {
+        window.location.href = 'parcours/deleteParcours.php?id=' + id + '&marathon_id=<?php echo $id; ?>';
+    };
+    document.getElementById('delParcoursModal').classList.add('open');
 }
-
-function closeProduits() {
-    document.getElementById('modalProduits').classList.remove('open');
-}
-
-document.getElementById('modalProduits').addEventListener('click', function(e) {
-    if (e.target === this) closeProduits();
+document.getElementById('delParcoursModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
 });
 </script>
 </body>

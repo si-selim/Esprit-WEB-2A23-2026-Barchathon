@@ -14,8 +14,10 @@ class User {
     private $ville;
     private $occupation;
     private $profile_picture;
+    private $status;
+    private $sexe;
 
-    public function __construct($id_user, $nom_complet, $nom_user, $mot_de_passe, $email, $role, $age, $poids, $taille, $tel, $pays, $ville, $occupation, $profile_picture) {
+    public function __construct($id_user, $nom_complet, $nom_user, $mot_de_passe, $email, $role, $age, $poids, $taille, $tel, $pays, $ville, $occupation, $profile_picture, $status = 'active', $sexe = null) {
         $this->id_user = $id_user;
         $this->nom_complet = $nom_complet;
         $this->nom_user = $nom_user;
@@ -30,6 +32,8 @@ class User {
         $this->ville = $ville;
         $this->occupation = $occupation;
         $this->profile_picture = $profile_picture;
+        $this->status = $status;
+        $this->sexe = $sexe;
     }
 
     public function getIdUser() { return $this->id_user; }
@@ -46,6 +50,8 @@ class User {
     public function getVille() { return $this->ville; }
     public function getOccupation() { return $this->occupation; }
     public function getProfilePicture() { return $this->profile_picture; }
+    public function getStatus() { return $this->status; }
+    public function getSexe() { return $this->sexe; }
 
     public function setNomComplet($v) { $this->nom_complet = $v; }
     public function setNomUser($v) { $this->nom_user = $v; }
@@ -60,4 +66,6 @@ class User {
     public function setVille($v) { $this->ville = $v; }
     public function setOccupation($v) { $this->occupation = $v; }
     public function setProfilePicture($v) { $this->profile_picture = $v; }
+    public function setStatus($v) { $this->status = $v; }
+    public function setSexe($v) { $this->sexe = $v; }
 }

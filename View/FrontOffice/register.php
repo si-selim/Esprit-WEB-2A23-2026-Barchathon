@@ -1,9 +1,35 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../../Controller/UserController.php';
+require_once __DIR__ . '/../../Controller/Mailer.php';
+
+define('RECAPTCHA_SITE_KEY', '6Lc1RcUsAAAAAJJ9E9stq2yPeLHbyE82JgAY7si7');
+define('RECAPTCHA_SECRET_KEY', '6Lc1RcUsAAAAAOrReCtPIpSQGMLUd1ZEcaWPiD0c');
+
+function verifyRecaptcha($token) {
+    if (empty($token)) return false;
+    $data = http_build_query([
+        'secret'   => RECAPTCHA_SECRET_KEY,
+        'response' => $token,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ]);
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $data,
+            'timeout' => 8
+        ]
+    ]);
+    $response = @file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
+    if ($response === false) return false;
+    $json = json_decode($response, true);
+    return !empty($json['success']) && ($json['score'] ?? 0) >= 0.5;
+}
 
 $ctrl = new UserController();
 $error = '';
+$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nom_complet = trim($_POST['nom_complet'] ?? '');
@@ -19,8 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ville = trim($_POST['ville'] ?? '') ?: null;
     $tel = trim($_POST['tel'] ?? '') ?: null;
     $occupation = trim($_POST['occupation'] ?? '') ?: null;
+    $sexe = trim($_POST['sexe'] ?? '') ?: null;
+    if ($sexe !== null && !in_array($sexe, ['homme','femme','autre'])) { $sexe = null; }
 
-    if ($nom_complet === '' || $nom_user === '' || $mot_de_passe === '' || $email === '') {
+    if (!verifyRecaptcha($_POST['g-recaptcha-response'] ?? '')) {
+        $error = 'Veuillez confirmer que vous n\'etes pas un robot.';
+    } elseif ($nom_complet === '' || $nom_user === '' || $mot_de_passe === '' || $email === '') {
         $error = 'Veuillez remplir tous les champs obligatoires.';
     } elseif (strlen($nom_complet) < 3) {
         $error = 'Le nom complet doit contenir au moins 3 caracteres.';
@@ -42,20 +72,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $profile_picture = null;
         if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
             $result = $ctrl->saveProfilePicture($_FILES['profile_picture']);
-            if ($result === false) {
-                $error = 'Type de fichier non autorise ou photo trop volumineuse (max 2 Mo).';
+            if ($result === false || $result === null) {
+                $error = 'Echec de l\'enregistrement de la photo (type non autorise, trop volumineuse, ou dossier non accessible).';
             } else {
                 $profile_picture = $result;
             }
+        } elseif (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $error = 'Erreur lors du televersement de la photo.';
         }
 
         if ($error === '') {
             $hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
-            $userObj = new User(null, $nom_complet, $nom_user, $hash, $email, $role, $age, $poids, $taille, $tel, $pays, $ville, $occupation, $profile_picture);
+            $userObj = new User(null, $nom_complet, $nom_user, $hash, $email, $role, $age, $poids, $taille, $tel, $pays, $ville, $occupation, $profile_picture, 'active', $sexe);
+            $token = bin2hex(random_bytes(32));
             try {
-                $ctrl->ajouterUser($userObj);
-                header('Location: login.php');
-                exit;
+                $ctrl->ajouterUserAvecVerification($userObj, $token);
+                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $base = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+                $verifyUrl = $scheme . '://' . $host . $base . '/verify_email.php?token=' . urlencode($token);
+                $safeName = htmlspecialchars($nom_complet, ENT_QUOTES, 'UTF-8');
+                $safeUrl = htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8');
+                $mailBody = "<div style='font-family:Segoe UI,sans-serif;color:#102a43;'>"
+                    . "<h2>Bienvenue sur BarchaThon, {$safeName} !</h2>"
+                    . "<p>Merci de vous etre inscrit. Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :</p>"
+                    . "<p><a href='{$safeUrl}' style='display:inline-block;padding:12px 20px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;'>Verifier mon email</a></p>"
+                    . "<p>Ou copiez ce lien dans votre navigateur :<br><code>{$safeUrl}</code></p>"
+                    . "<p style='color:#627d98;font-size:0.85rem;'>Si vous n'avez pas cree de compte, ignorez cet email.</p>"
+                    . "</div>";
+                $sent = Mailer::send($email, 'Verifiez votre compte BarchaThon', $mailBody);
+                if ($sent) {
+                    $success = 'Compte cree ! Un email de verification a ete envoye a ' . htmlspecialchars($email) . '. Cliquez sur le lien pour activer votre compte.';
+                } else {
+                    $success = 'Compte cree, mais l\'email de verification n\'a pas pu etre envoye. Contactez un administrateur.';
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() == 23000) {
                     $error = 'Ce nom d\'utilisateur existe deja.';
@@ -73,6 +123,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creer un compte — BarchaThon</title>
+    <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'light');</script>
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RECAPTCHA_SITE_KEY; ?>"></script>
+    <style>
+        html[data-theme="dark"] body { background:#0f172a !important; }
+        html[data-theme="dark"] .card-form { background:#1e293b !important; border-color:rgba(255,255,255,0.08) !important; box-shadow:0 14px 40px rgba(0,0,0,.4) !important; }
+        html[data-theme="dark"] .card-form h1 { color:#e2e8f0; }
+        html[data-theme="dark"] .card-form > p { color:#94a3b8; }
+        html[data-theme="dark"] label { color:#e2e8f0; }
+        html[data-theme="dark"] input,html[data-theme="dark"] select { background:#162032 !important; color:#e2e8f0 !important; border-color:rgba(255,255,255,0.1) !important; }
+        html[data-theme="dark"] input:focus,html[data-theme="dark"] select:focus { background:#1e293b !important; border-color:#14b8a6 !important; }
+        html[data-theme="dark"] .btn-secondary { background:rgba(255,255,255,0.06) !important; color:#e2e8f0 !important; border-color:rgba(255,255,255,0.1) !important; }
+        html[data-theme="dark"] .file-upload-label { background:rgba(255,255,255,0.05) !important; color:#e2e8f0 !important; border-color:rgba(20,184,166,0.25) !important; }
+    </style>
     <style>
         :root {
             --ink:#102a43; --teal:#0f766e; --sun:#ffb703;
@@ -122,6 +185,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .feedback.error { color:#b42318; }
         .feedback.success { color:#0f766e; }
         .profile-preview { max-width:100px; max-height:100px; border-radius:12px; margin-top:8px; display:none; }
+        .gender-picker { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+        .gender-opt { position:relative; }
+        .gender-opt input[type=radio] { position:absolute; opacity:0; width:0; height:0; }
+        .gender-opt label { display:inline-flex; align-items:center; gap:10px; padding:8px 20px 8px 8px; border-radius:999px; border:2px solid #e2e8f0; cursor:pointer; font-weight:700; font-size:0.9rem; color:#64748b; background:#f8fafc; transition:all .22s ease; user-select:none; }
+        .gender-opt label:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.07); }
+        .gender-icon { width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#e2e8f0; flex-shrink:0; transition:all .22s ease; }
+        .gender-opt:has([value=homme]) label:hover { border-color:#93c5fd; }
+        .gender-opt:has([value=homme]) label:hover .gender-icon { background:rgba(59,130,246,.15); color:#3b82f6; }
+        .gender-opt:has([value=homme]) input:checked + label { border-color:#3b82f6; color:#1d4ed8; background:rgba(59,130,246,.06); }
+        .gender-opt:has([value=homme]) input:checked + label .gender-icon { background:rgba(59,130,246,.2); color:#3b82f6; }
+        .gender-opt:has([value=femme]) label:hover { border-color:#f9a8d4; }
+        .gender-opt:has([value=femme]) label:hover .gender-icon { background:rgba(236,72,153,.15); color:#ec4899; }
+        .gender-opt:has([value=femme]) input:checked + label { border-color:#ec4899; color:#be185d; background:rgba(236,72,153,.06); }
+        .gender-opt:has([value=femme]) input:checked + label .gender-icon { background:rgba(236,72,153,.2); color:#ec4899; }
+        .gender-opt:has([value=autre]) label:hover { border-color:#c4b5fd; }
+        .gender-opt:has([value=autre]) label:hover .gender-icon { background:rgba(139,92,246,.15); color:#8b5cf6; }
+        .gender-opt:has([value=autre]) input:checked + label { border-color:#8b5cf6; color:#6d28d9; background:rgba(139,92,246,.06); }
+        .gender-opt:has([value=autre]) input:checked + label .gender-icon { background:rgba(139,92,246,.2); color:#8b5cf6; }
+        html[data-theme="dark"] .gender-opt label { background:#1e293b; border-color:rgba(255,255,255,.1); color:#94a3b8; }
+        html[data-theme="dark"] .gender-icon { background:rgba(255,255,255,.07); }
+        html[data-theme="dark"] .gender-opt:has([value=homme]) input:checked + label { border-color:#60a5fa; color:#93c5fd; background:rgba(96,165,250,.08); }
+        html[data-theme="dark"] .gender-opt:has([value=homme]) input:checked + label .gender-icon { background:rgba(96,165,250,.2); color:#60a5fa; }
+        html[data-theme="dark"] .gender-opt:has([value=femme]) input:checked + label { border-color:#f472b6; color:#f9a8d4; background:rgba(244,114,182,.08); }
+        html[data-theme="dark"] .gender-opt:has([value=femme]) input:checked + label .gender-icon { background:rgba(244,114,182,.2); color:#f472b6; }
+        html[data-theme="dark"] .gender-opt:has([value=autre]) input:checked + label { border-color:#a78bfa; color:#c4b5fd; background:rgba(167,139,250,.08); }
+        html[data-theme="dark"] .gender-opt:has([value=autre]) input:checked + label .gender-icon { background:rgba(167,139,250,.2); color:#a78bfa; }
         .actions { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
         .btn {
             text-decoration:none; padding:12px 20px; border-radius:12px;
@@ -144,6 +233,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Formulaire d'inscription pour creer un nouveau compte.</p>
             <?php if ($error): ?>
                 <div class="error-msg"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+            <?php if ($success): ?>
+                <div class="error-msg" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;"><?php echo htmlspecialchars($success); ?></div>
             <?php endif; ?>
             <form method="POST" action="register.php" enctype="multipart/form-data" data-validate>
                 <div class="form-grid">
@@ -212,6 +304,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </select>
                     </div>
                     <div class="field full-width">
+                        <label>Sexe</label>
+                        <div class="gender-picker">
+                            <div class="gender-opt">
+                                <input type="radio" id="sexe_h" name="sexe" value="homme" <?php echo ($_POST['sexe'] ?? '') === 'homme' ? 'checked' : ''; ?>>
+                                <label for="sexe_h"><span class="gender-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="14.5" r="5.5"/><line x1="14.28" y1="9.72" x2="20" y2="4"/><polyline points="15.5 4 20 4 20 8.5"/></svg></span>Homme</label>
+                            </div>
+                            <div class="gender-opt">
+                                <input type="radio" id="sexe_f" name="sexe" value="femme" <?php echo ($_POST['sexe'] ?? '') === 'femme' ? 'checked' : ''; ?>>
+                                <label for="sexe_f"><span class="gender-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="5.5"/><line x1="12" y1="14" x2="12" y2="21"/><line x1="8.5" y1="18" x2="15.5" y2="18"/></svg></span>Femme</label>
+                            </div>
+                            <div class="gender-opt">
+                                <input type="radio" id="sexe_a" name="sexe" value="autre" <?php echo ($_POST['sexe'] ?? '') === 'autre' ? 'checked' : ''; ?>>
+                                <label for="sexe_a"><span class="gender-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.5"/><line x1="12" y1="1.5" x2="12" y2="6.5"/><line x1="12" y1="17.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="6.5" y2="12"/><line x1="17.5" y1="12" x2="22.5" y2="12"/></svg></span>Autre</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field full-width">
                         <label>Photo de profil</label>
                         <div class="file-upload">
                             <label class="file-upload-label">
@@ -224,13 +333,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <img id="profilePicturePreview" class="profile-preview" alt="">
                     </div>
                 </div>
+                <input type="hidden" id="recaptcha-token" name="g-recaptcha-response">
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Creer le compte</button>
+                    <button class="btn btn-primary" id="submit-btn" type="submit">Creer le compte</button>
                     <a class="btn btn-secondary" href="login.php">Retour</a>
                 </div>
             </form>
+            <div style="text-align:center;margin-top:18px;padding-top:18px;border-top:1px solid #e2e8f0;">
+                <div style="color:#627d98;font-size:.85rem;margin-bottom:10px;">ou</div>
+                <a href="google_login.php" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:11px 18px;background:#fff;color:#3c4043;border:1.5px solid #dadce0;border-radius:12px;text-decoration:none;font-weight:700;font-size:.93rem;">
+                    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+                    S'inscrire avec Google
+                </a>
+            </div>
         </div>
     </div>
     <script src="user.js"></script>
+    <script>
+        grecaptcha.ready(function() {
+            document.querySelector('form[action="register.php"]').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                grecaptcha.execute('<?php echo RECAPTCHA_SITE_KEY; ?>', {action: 'register'}).then(function(token) {
+                    document.getElementById('recaptcha-token').value = token;
+                    form.submit();
+                });
+            });
+        });
+    </script>
 </body>
 </html>
