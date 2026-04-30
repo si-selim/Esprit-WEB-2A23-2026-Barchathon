@@ -82,9 +82,9 @@
             BarchaThon
         </a>
         <nav class="fo-nav">
-            <a class="fo-link active" href="accueil.php">Accueil</a>
+            <a class="fo-link " href="accueil.php">Accueil</a>
             <a class="fo-link " href="listMarathons.php">Catalogue</a>
-            <a class="fo-link" href="mesSponsors.php">Sponsors</a>
+            <a class="fo-link active" href="mesSponsors.php">Sponsors</a>
             <a class="fo-link" href="register.php">S'inscrire</a>
             <a class="fo-cta" href="login.php">Se connecter</a>
         </nav>
@@ -208,7 +208,6 @@
                         <select id="etat" name="etat">
                             <option<?php echo ($formEtat ?: $etat) === 'Actif' ? ' selected' : ''; ?>>Actif</option>
                             <option<?php echo ($formEtat ?: $etat) === 'Terminé' ? ' selected' : ''; ?>>Terminé</option>
-                            <option<?php echo ($formEtat ?: $etat) === 'Annulé' ? ' selected' : ''; ?>>Annulé</option>
                         </select>
                     </div>
                 </div>

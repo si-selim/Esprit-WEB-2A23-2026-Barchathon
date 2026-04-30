@@ -111,9 +111,9 @@
             BarchaThon
         </a>
         <nav class="fo-nav">
-            <a class="fo-link active" href="accueil.php">Accueil</a>
+            <a class="fo-link " href="accueil.php">Accueil</a>
             <a class="fo-link " href="listMarathons.php">Catalogue</a>
-            <a class="fo-link" href="mesSponsors.php">Sponsors</a>
+            <a class="fo-link active" href="mesSponsors.php">Sponsors</a>
             <a class="fo-link" href="register.php">S'inscrire</a>
             <a class="fo-cta" href="login.php">Se connecter</a>
         </nav>
@@ -146,6 +146,7 @@
                             <div class="button-group">
                                 <a href="#" data-preserve-form data-target="chooseSponsorSponsoring.php">Choisir un sponsor</a>
                             </div>
+                            <span id="sponsor-error" class="error"></span>
                         <?php endif; ?>
                     </div>
                     <div class="field full-width">
@@ -157,6 +158,7 @@
                             <div class="button-group">
                                 <a href="#" data-preserve-form data-target="chooseMarathon.php">Choisir un marathon</a>
                             </div>
+                            <span id="marathon-error" class="error"></span>
                         <?php endif; ?>
                     </div>
                     <div class="field">
@@ -178,7 +180,6 @@
                         <select id="etat" name="etat">
                             <option<?php echo $formEtat === 'Actif' ? ' selected' : ''; ?>>Actif</option>
                             <option<?php echo $formEtat === 'Terminé' ? ' selected' : ''; ?>>Terminé</option>
-                            <option<?php echo $formEtat === 'Annulé' ? ' selected' : ''; ?>>Annulé</option>
                         </select>
                     </div>
                 </div>
@@ -190,6 +191,13 @@
         </div>
     </div>
     <script>
+/*
+        var sponsorError = document.getElementById('sponsor-error');
+        var marathonError = document.getElementById('marathon-error');
+
+        if (sponsorError) sponsorError.textContent = '';
+        if (marathonError) marathonError.textContent = '';
+
         document.addEventListener('DOMContentLoaded', function() {
             const preserveLinks = document.querySelectorAll('a[data-preserve-form]');
             
@@ -267,6 +275,134 @@
             if (hasError) {
                 event.preventDefault();
             }
+        });*/
+
+
+
+                
+        document.addEventListener('DOMContentLoaded', function() {
+
+            /* =========================
+            PRESERVE FORM NAVIGATION
+            ========================== */
+            const preserveLinks = document.querySelectorAll('a[data-preserve-form]');
+
+            preserveLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const target = this.getAttribute('data-target');
+                    const name = document.getElementById('name').value;
+                    const dateDebut = document.getElementById('dateDebut').value;
+                    const dateFin = document.getElementById('dateFin').value;
+                    const montant = document.getElementById('montant').value;
+                    const etat = document.getElementById('etat').value;
+
+                    const params = new URLSearchParams();
+                    if (name) params.append('formName', name);
+                    if (dateDebut) params.append('formDateDebut', dateDebut);
+                    if (dateFin) params.append('formDateFin', dateFin);
+                    if (montant) params.append('formMontant', montant);
+                    if (etat) params.append('formEtat', etat);
+
+                    const idMarathon = '<?php echo $idMarathon; ?>';
+                    const idSponsor = '<?php echo $idSponsor; ?>';
+
+                    let url = target;
+
+                    if (idMarathon && target === 'chooseSponsorSponsoring.php') {
+                        url += '?idMarathon=' + idMarathon + '&' + params.toString();
+                    } 
+                    else if (idSponsor && target === 'chooseMarathon.php') {
+                        url += '?idSponsor=' + idSponsor + '&' + params.toString();
+                    } 
+                    else if (params.toString()) {
+                        url += '?' + params.toString();
+                    }
+
+                    window.location.href = url;
+                });
+            });
+
+            /* =========================
+                FORM SUBMIT
+            ========================== */
+            document.getElementById('sponsoringForm').addEventListener('submit', function(event) {
+
+                var nameField = document.getElementById('name');
+                var dateDebutField = document.getElementById('dateDebut');
+                var dateFinField = document.getElementById('dateFin');
+                var montantField = document.getElementById('montant');
+
+                var nameError = document.getElementById('name-error');
+                var dateError = document.getElementById('date-error');
+                var montantError = document.getElementById('montant-error');
+
+                var sponsorError = document.getElementById('sponsor-error');
+                var marathonError = document.getElementById('marathon-error');
+
+                /* RESET ERRORS */
+                nameError.textContent = '';
+                dateError.textContent = '';
+                montantError.textContent = '';
+
+                if (sponsorError) sponsorError.textContent = '';
+                if (marathonError) marathonError.textContent = '';
+
+                var name = nameField.value.trim();
+                var dateDebut = dateDebutField.value;
+                var dateFin = dateFinField.value;
+                var montant = montantField.value.trim();
+
+                var hasError = false;
+
+                /* =========================
+                    VALIDATIONS INPUTS
+                ========================== */
+
+                if (name.length === 0 || name.length >= 51) {
+                    nameError.textContent = 'Le nom doit contenir entre 1 et 50 caractères.';
+                    hasError = true;
+                }
+
+                if (dateDebut === '' || dateFin === '') {
+                    dateError.textContent = 'Les deux dates doivent être renseignées.';
+                    hasError = true;
+                } 
+                else if (dateDebut >= dateFin) {
+                    dateError.textContent = 'La date de début doit être antérieure à la date de fin.';
+                    hasError = true;
+                }
+
+                if (montant === '' || isNaN(montant) || parseFloat(montant) <= 0) {
+                    montantError.textContent = 'Le montant doit être un nombre strictement supérieur à 0.';
+                    hasError = true;
+                }
+
+                /* =========================
+                VALIDATION SPONSOR
+                ========================== */
+                var hasSponsor = document.querySelector('input[name="idSponsor"]');
+                var hasMarathon = document.querySelector('input[name="idMarathon"]');
+
+                if (!hasSponsor && sponsorError) {
+                    sponsorError.textContent = 'Veuillez sélectionner un sponsor.';
+                    hasError = true;
+                }
+
+                if (!hasMarathon && marathonError) {
+                    marathonError.textContent = 'Veuillez sélectionner un marathon.';
+                    hasError = true;
+                }
+
+                /* =========================
+                STOP SUBMIT IF ERROR
+                ========================== */
+                if (hasError) {
+                    event.preventDefault();
+                }
+            });
+
         });
     </script>
 </body>

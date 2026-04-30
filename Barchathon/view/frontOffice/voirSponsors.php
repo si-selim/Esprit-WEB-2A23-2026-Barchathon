@@ -23,6 +23,18 @@
             color:var(--ink);
             background:linear-gradient(180deg,#fefaf0 0%, var(--bg) 100%);
         }
+        .btn-export {
+    background:#102a43;
+    color:#fff;
+    border:1px solid #102a43;
+    font-weight:700;
+}
+
+.btn-export:hover {
+    background:#0b1d2a;
+    border-color:#0b1d2a;
+    transform:translateY(-1px);
+}
         .page { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:28px 0 56px; }
         .toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; margin-bottom:22px; align-items:center; }
         .toolbar-left { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
@@ -102,9 +114,9 @@
             BarchaThon
         </a>
         <nav class="fo-nav">
-            <a class="fo-link active" href="accueil.php">Accueil</a>
+            <a class="fo-link " href="accueil.php">Accueil</a>
             <a class="fo-link " href="listMarathons.php">Catalogue</a>
-            <a class="fo-link" href="voirSponsors.php">Sponsors</a>
+            <a class="fo-link active" href="voirSponsors.php">Sponsors</a>
             <a class="fo-link" href="register.php">S'inscrire</a>
             <a class="fo-cta" href="login.php">Se connecter</a>
         </nav>
@@ -127,21 +139,21 @@
                 <div class="search-box" style="width:125px;">
                     <label>
                         Rechercher un sponsor
-                    <input type="search" placeholder="rechercher par nom">
+                    <input type="search" id="searchSponsorView" placeholder="rechercher par nom">
                     </label>
                 </div>
                 <div class="filter-group">
                     <label>
-                        Filtrer ordre alphabétique
-                        <select>
-                            <option>A-Z</option>
-                            <option>Z-A</option>
-                        </select>
-                    </label>
+                            Trier sponsors
+                            <select id="sortSponsorsVoiSponsors">
+                                <option value="az">A-Z</option>
+                                <option value="za">Z-A</option>
+                            </select>
+                        </label>
                 </div>
             </div>
             <div class="table-shell">
-                <table>
+                <table id="sponsorsTableView">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -167,51 +179,38 @@
                 <div class="search-box" style="width:125px;">
                     <label>
                         Rechercher un sponsoring
-                    <input type="search" placeholder="rechercher par nom">
+                    <input type="search" id="searchSponsoringView" placeholder="rechercher par nom">
                     </label>
                 </div>
                 <div class="filter-group">
                     <label>
-                        Filtrer par date début
-                        <select>
-                            <option>Tout</option>
-                            <option>2026-01</option>
-                            <option>2026-02</option>
-                            <option>2026-03</option>
-                            <option>2026-04</option>
-                        </select>
-                    </label>
-                    <label>
-                        Filtrer par date fin
-                        <select>
-                            <option>Tout</option>
-                            <option>2026-10</option>
-                            <option>2026-11</option>
-                            <option>2026-12</option>
-                        </select>
-                    </label>
-                    <label>
-                        Filtrer par montant
-                        <select>
-                            <option>Tout</option>
-                            <option>0-5000</option>
-                            <option>5000-10000</option>
-                            <option>10000+</option>
-                        </select>
-                    </label>
-                    <label>
-                        Filtrer par état
-                        <select>
-                            <option>Tout</option>
-                            <option>Actif</option>
-                            <option>Terminé</option>
-                            <option>Annulé</option>
-                        </select>
-                    </label>
+                            Filtrer par état
+                            <select id="filterEtatVoirSponsors">
+                                <option value="tout">Tout</option>
+                                <option value="actif">Actif</option>
+                                <option value="termine">Terminé</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Trier par montant
+                            <select id="sortMontantVoirSponsors">
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Trier par date de fin
+                            <select id="sortDateFinVoirSponsors">
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
+                            </select>
+                        </label>
                 </div>
             </div>
             <div class="table-shell">
-                <table>
+                <table id="sponsoringTableView">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -344,6 +343,143 @@
                 window.location.href = `voirSponsors.php?idSponsor=${sponsorId}#sponsoring`;
             });
         });
+
+        // Fonction de recherche en temps réel pour sponsors (Vue)
+        const searchSponsorViewInput = document.getElementById('searchSponsorView');
+        const sponsorsViewTable = document.getElementById('sponsorsTableView');
+        
+        if (searchSponsorViewInput && sponsorsViewTable) {
+            searchSponsorViewInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsorsViewTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom" (index 1)
+                        const nomCell = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Fonction de recherche en temps réel pour sponsoring (Vue)
+        const searchSponsoringViewInput = document.getElementById('searchSponsoringView');
+        const sponsoringViewTable = document.getElementById('sponsoringTableView');
+        
+        if (searchSponsoringViewInput && sponsoringViewTable) {
+            searchSponsoringViewInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsoringViewTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom Sponsoring" (index 1)
+                        const nomCell = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+
+
+        const sortSponsorsView = document.getElementById('sortSponsorsVoiSponsors');
+
+        if (sortSponsorsView && sponsorsViewTable) {
+            sortSponsorsView.addEventListener('change', function () {
+                const rows = Array.from(sponsorsViewTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const nameA = a.cells[1].textContent.trim().toLowerCase();
+                    const nameB = b.cells[1].textContent.trim().toLowerCase();
+
+                    if (this.value === 'az') return nameA.localeCompare(nameB);
+                    if (this.value === 'za') return nameB.localeCompare(nameA);
+                    return 0;
+                });
+
+                const tbody = sponsorsViewTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+
+        const filterEtatVoirSponsors = document.getElementById('filterEtatVoirSponsors');
+
+        if (filterEtatVoirSponsors && sponsoringViewTable) {
+            filterEtatVoirSponsors.addEventListener('change', function () {
+                const value = this.value;
+                const rows = sponsoringViewTable.querySelectorAll('tbody tr');
+
+                rows.forEach(row => {
+                    const etat = row.cells[5].textContent.trim().toLowerCase();
+
+                    if (value === 'tout') {
+                        row.style.display = '';
+                    } else if (value === 'actif') {
+                        row.style.display = etat === 'actif' ? '' : 'none';
+                    } else if (value === 'termine') {
+                        row.style.display = (etat === 'terminé' || etat === 'termine') ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        const sortMontantVoirSponsors = document.getElementById('sortMontantVoirSponsors');
+
+        if (sortMontantVoirSponsors && sponsoringViewTable) {
+            sortMontantVoirSponsors.addEventListener('change', function () {
+                const rows = Array.from(sponsoringViewTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    let mA = a.cells[4].textContent.replace(/[^\d.-]/g, '');
+                    let mB = b.cells[4].textContent.replace(/[^\d.-]/g, '');
+
+                    mA = parseFloat(mA) || 0;
+                    mB = parseFloat(mB) || 0;
+
+                    if (this.value === 'asc') return mA - mB;
+                    if (this.value === 'desc') return mB - mA;
+                    return 0;
+                });
+
+                const tbody = sponsoringViewTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+
+        const sortDateFinVoirSponsors = document.getElementById('sortDateFinVoirSponsors');
+
+        if (sortDateFinVoirSponsors && sponsoringViewTable) {
+            sortDateFinVoirSponsors.addEventListener('change', function () {
+                const rows = Array.from(sponsoringViewTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const dateA = new Date(a.cells[3].textContent.trim());
+                    const dateB = new Date(b.cells[3].textContent.trim());
+
+                    if (this.value === 'asc') return dateA - dateB;
+                    if (this.value === 'desc') return dateB - dateA;
+                    return 0;
+                });
+
+                const tbody = sponsoringViewTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
     </script>
 </body>
 </html>

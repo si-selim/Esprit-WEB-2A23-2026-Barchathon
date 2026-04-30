@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gérer mes sponsors</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --ink:#102a43;
@@ -23,6 +24,18 @@
             color:var(--ink);
             background:linear-gradient(180deg,#fefaf0 0%, var(--bg) 100%);
         }
+        .btn-export {
+    background:#102a43;
+    color:#fff;
+    border:1px solid #102a43;
+    font-weight:700;
+}
+
+.btn-export:hover {
+    background:#0b1d2a;
+    border-color:#0b1d2a;
+    transform:translateY(-1px);
+}
         .page { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:28px 0 56px; }
         .toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; margin-bottom:22px; align-items:center; }
         .toolbar-left { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
@@ -123,9 +136,9 @@
             BarchaThon
         </a>
         <nav class="fo-nav">
-            <a class="fo-link active" href="accueil.php">Accueil</a>
+            <a class="fo-link" href="accueil.php">Accueil</a>
             <a class="fo-link " href="listMarathons.php">Catalogue</a>
-            <a class="fo-link" href="mesSponsors.php">Sponsors</a>
+            <a class="fo-link active" href="mesSponsors.php">Sponsors</a>
             <a class="fo-link" href="register.php">S'inscrire</a>
             <a class="fo-cta" href="login.php">Se connecter</a>
         </nav>
@@ -154,15 +167,15 @@
                     <div class="search-box">
                         <label>
                             Rechercher un sponsor
-                        <input type="search" placeholder="rechercher par nom">
+                        <input type="search" id="searchSponsor" placeholder="rechercher par nom">
                         </label>
                     </div>
                     <div class="filter-group">
                         <label>
-                            Filtrer ordre alphabétique
-                            <select>
-                                <option>A-Z</option>
-                                <option>Z-A</option>
+                            Trier sponsors
+                            <select id="sortSponsorsMesSponsors">
+                                <option value="az">A-Z</option>
+                                <option value="za">Z-A</option>
                             </select>
                         </label>
                     </div>
@@ -170,7 +183,7 @@
             </div>
             <h2>Sponsors</h2>
             <div class="table-shell">
-                <table>
+                <table id="sponsorsTable">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -188,7 +201,8 @@
                     </tbody>
                 </table>
             </div>
-            <button class="btn btn-secondary export-btn">Exporter</button>
+           <button class="btn btn-export" onclick="exportSponsorsExcel()">Exporter sponsors</button>
+                
             <p class="note">Les boutons en début de ligne sont des actions visuelles : supprimer ou modifier l'enregistrement.</p>
         </section>
 
@@ -203,45 +217,32 @@
                     <div class="search-box">
                         <label>
                             Rechercher un sponsoring
-                        <input type="search" placeholder="rechercher par nom">
+                        <input type="search" id="searchSponsoring" placeholder="rechercher par nom">
                         </label>
                     </div>
                     <div class="filter-group">
                         <label>
-                            Filtrer par date début
-                            <select>
-                                <option>Tout</option>
-                                <option>2026-01</option>
-                                <option>2026-02</option>
-                                <option>2026-03</option>
-                                <option>2026-04</option>
-                            </select>
-                        </label>
-                        <label>
-                            Filtrer par date fin
-                            <select>
-                                <option>Tout</option>
-                                <option>2026-10</option>
-                                <option>2026-11</option>
-                                <option>2026-12</option>
-                            </select>
-                        </label>
-                        <label>
-                            Filtrer par montant
-                            <select>
-                                <option>Tout</option>
-                                <option>0-5000</option>
-                                <option>5000-10000</option>
-                                <option>10000+</option>
-                            </select>
-                        </label>
-                        <label>
                             Filtrer par état
-                            <select>
-                                <option>Tout</option>
-                                <option>Actif</option>
-                                <option>Terminé</option>
-                                <option>Annulé</option>
+                            <select id="filterEtatMesSponsors">
+                                <option value="tout">Tout</option>
+                                <option value="actif">Actif</option>
+                                <option value="termine">Terminé</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Trier par montant
+                            <select id="sortMontantMesSponsors">
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Trier par date de fin
+                            <select id="sortDateFinMesSponsors">
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
                             </select>
                         </label>
                     </div>
@@ -249,7 +250,7 @@
             </div>
             <h2>Sponsoring</h2>
             <div class="table-shell">
-                <table>
+                <table id="sponsoringTable">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -274,7 +275,8 @@
                     </tbody>
                 </table>
             </div>
-            <button class="btn btn-secondary export-btn">Exporter</button>
+           <button class="btn btn-export" onclick="exportSponsoringExcel()">Exporter sponsoring</button>
+                
             <p class="note">Aucune modification réelle n'est appliquée : c'est une interface de gestion pour organisateur.</p>
         </section>
 
@@ -457,6 +459,245 @@
                 window.location.href = `mesSponsors.php?idSponsor=${sponsorId}#sponsoring`;
             });
         });
+
+        // Fonction de recherche en temps réel pour sponsors
+        const searchSponsorInput = document.getElementById('searchSponsor');
+        const sponsorsTable = document.getElementById('sponsorsTable');
+        
+        if (searchSponsorInput && sponsorsTable) {
+            searchSponsorInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsorsTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom" (index 1)
+                        const nomCell = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Fonction de recherche en temps réel pour sponsoring
+        const searchSponsoringInput = document.getElementById('searchSponsoring');
+        const sponsoringTable = document.getElementById('sponsoringTable');
+        
+        if (searchSponsoringInput && sponsoringTable) {
+            searchSponsoringInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsoringTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom Sponsoring" (index 1)
+                        const nomCell = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+        const sortSponsorsMesSponsors = document.getElementById('sortSponsorsMesSponsors');
+
+        if (sortSponsorsMesSponsors && sponsorsTable) {
+            sortSponsorsMesSponsors.addEventListener('change', function () {
+                const rows = Array.from(sponsorsTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const nameA = a.cells[1].textContent.trim().toLowerCase();
+                    const nameB = b.cells[1].textContent.trim().toLowerCase();
+
+                    if (this.value === 'az') return nameA.localeCompare(nameB);
+                    if (this.value === 'za') return nameB.localeCompare(nameA);
+                    return 0;
+                });
+
+                const tbody = sponsorsTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+
+        const filterEtatMesSponsors = document.getElementById('filterEtatMesSponsors');
+
+        if (filterEtatMesSponsors && sponsoringTable) {
+            filterEtatMesSponsors.addEventListener('change', function () {
+                const value = this.value;
+                const rows = sponsoringTable.querySelectorAll('tbody tr');
+
+                rows.forEach(row => {
+                    const etat = row.cells[5].textContent.trim().toLowerCase();
+
+                    if (value === 'tout') {
+                        row.style.display = '';
+                    } else if (value === 'actif') {
+                        row.style.display = etat === 'actif' ? '' : 'none';
+                    } else if (value === 'termine') {
+                        row.style.display = etat === 'terminé' || etat === 'termine' ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        const sortMontantMesSponsors = document.getElementById('sortMontantMesSponsors');
+
+        if (sortMontantMesSponsors && sponsoringTable) {
+            sortMontantMesSponsors.addEventListener('change', function () {
+                const rows = Array.from(sponsoringTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    let montantA = a.cells[4].textContent.replace(/[^\d.-]/g, '').trim();
+                    let montantB = b.cells[4].textContent.replace(/[^\d.-]/g, '').trim();
+
+                    montantA = parseFloat(montantA) || 0;
+                    montantB = parseFloat(montantB) || 0;
+
+                    if (this.value === 'asc') return montantA - montantB;
+                    if (this.value === 'desc') return montantB - montantA;
+                    return 0;
+                });
+
+                const tbody = sponsoringTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+        
+        const sortDateFinMesSponsors = document.getElementById('sortDateFinMesSponsors');
+
+        if (sortDateFinMesSponsors && sponsoringTable) {
+            sortDateFinMesSponsors.addEventListener('change', function () {
+                const rows = Array.from(sponsoringTable.querySelector('tbody').querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const dateA = new Date(a.cells[3].textContent.trim());
+                    const dateB = new Date(b.cells[3].textContent.trim());
+
+                    if (this.value === 'asc') return dateA - dateB;
+                    if (this.value === 'desc') return dateB - dateA;
+                    return 0;
+                });
+
+                const tbody = sponsoringTable.querySelector('tbody');
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        }
+        
+
+        function exportSponsorsExcel() {
+    const table = document.getElementById("sponsorsTable");
+
+    const wb = XLSX.utils.book_new();
+
+    // ⚡ conversion directe propre
+    const ws = XLSX.utils.table_to_sheet(table);
+
+    // supprimer colonne Actions proprement
+    const range = XLSX.utils.decode_range(ws['!ref']);
+
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: range.e.c });
+        delete ws[addr];
+    }
+
+    // AUTO WIDTH
+    applyAutoWidth(ws);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Sponsors");
+    XLSX.writeFile(wb, "sponsors.xlsx");
+}
+function formatExcelDate(value) {
+    if (!value) return "";
+
+    // déjà format ISO
+    if (typeof value === "string" && value.includes("-")) {
+        return value;
+    }
+
+    // Excel number date
+    if (typeof value === "number") {
+        const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+
+        if (!isNaN(date)) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, "0");
+            const d = String(date.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+        }
+    }
+
+    return "";
+}
+function exportSponsoringExcel() {
+    const table = document.getElementById("sponsoringTable");
+
+    const wb = XLSX.utils.book_new();
+
+    const rows = [];
+    const tr = table.querySelectorAll("tr");
+
+    tr.forEach((row) => {
+        const cells = row.querySelectorAll("th, td");
+        const line = [];
+
+        cells.forEach((cell, colIndex) => {
+            const text = cell.innerText.trim();
+
+            // ❌ supprimer colonne ACTIONS (dernière colonne)
+            if (colIndex === cells.length - 1) return;
+
+            line.push(text);
+        });
+
+        rows.push(line);
+    });
+
+    // correction dates
+    for (let i = 1; i < rows.length; i++) {
+        rows[i][2] = formatExcelDate(rows[i][2]); // date début
+        rows[i][3] = formatExcelDate(rows[i][3]); // date fin
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    applyAutoWidth(ws);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Sponsoring");
+    XLSX.writeFile(wb, "sponsoring.xlsx");
+}
+function applyAutoWidth(ws) {
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const colWidths = [];
+
+    for (let C = range.s.c; C <= range.e.c; C++) {
+        let max = 10;
+
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+
+            if (cell && cell.v) {
+                const len = cell.v.toString().length;
+                if (len > max) max = len;
+            }
+        }
+
+        colWidths.push({ wch: Math.min(max + 2, 60) });
+    }
+
+    ws["!cols"] = colWidths;
+}
     </script>
 </body>
 </html>

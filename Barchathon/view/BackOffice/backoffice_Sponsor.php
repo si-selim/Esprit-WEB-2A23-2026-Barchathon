@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Back Office - Sponsors</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --ink:#102a43;
@@ -138,7 +139,7 @@
                         <div class="search-box">
                             <label>
                                 Rechercher un sponsor
-                            <input type="search" placeholder="rechercher par nom">
+                            <input type="search" id="searchSponsorBackoffice" placeholder="rechercher par nom">
                             </label>
                         </div>
                     </div>
@@ -146,16 +147,18 @@
                         <div class="filter-group">
                             
                                 filtrer ordre alphabétique
-                                <select>
-                                    <option>A-Z</option>
-                                    <option>Z-A</option>
+                                <select id="sortSponsorsBackoffice">
+                                    <option value="">--</option>
+                                    <option value="az">A-Z</option>
+                                    <option value="za">Z-A</option>
                                 </select>
+                                
                             
                         </div>
                     </div>
                 </div>
                 <div class="table-shell">
-                    <table>
+                    <table id="sponsorsBackofficeTable">
                         <thead>
                             <tr>
                                 <th>id Organisateur</th>
@@ -175,7 +178,7 @@
                     </table>
                 </div>
                 <div class="section-actions">
-                    <button class="btn btn-export">Exporter sponsors</button>
+                    <button class="btn btn-export" onclick="exportSponsorsExcel()">Exporter sponsors</button>
                 </div>
                 <div class="section-note">Affichage statique de la table des sponsors. Les actions de modification sont désactivées.</div>
             </section>
@@ -197,32 +200,40 @@
                     <div class="search-box">
                         <label>
                             rechercher un sponsoring
-                        <input type="search" placeholder="Rechercher par nom ou par état">
+                        <input type="search" id="searchSponsoringBackoffice" placeholder="Rechercher par nom ou par état">
                         </label>
                     </div>
                     <div class="filter-group">
-                        <label>
+                        <label for="filterEtatBackoffice">
                             Filtrer par état
-                            <select >
-                                <option>Tout</option>
-                                <option>Actif</option>
-                                <option>Terminé</option>
-                                <option>Planifié</option>
+                            <select id="filterEtatBackoffice">
+                                <option value="tout">Tout</option>
+                                <option value="actif">Actif</option>
+                                <option value="termine">Terminé</option>
                             </select>
                         </label>
-                        <label>
-                            Filtrer par montant
-                            <select>
-                                <option>Tout</option>
-                                <option>0-5k</option>
-                                <option>5k-15k</option>
-                                <option>> 15k</option>
+
+                        <label for="sortMontantBackoffice">
+                            Trier par montant
+                            <select id="sortMontantBackoffice">
+                                <option value="">--</option>
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
+                            </select>
+                        </label>
+
+                        <label for="sortDateFinBackoffice">
+                            Trier par date de fin
+                            <select id="sortDateFinBackoffice">
+                                <option value="">--</option>
+                                <option value="asc">Croissant</option>
+                                <option value="desc">Décroissant</option>
                             </select>
                         </label>
                     </div>
                 </div>
                 <div class="table-shell">
-                    <table>
+                    <table id="sponsoringBackofficeTable">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -242,7 +253,7 @@
                     </table>
                 </div>
                 <div class="section-actions">
-                    <button class="btn btn-export">Exporter sponsoring</button>
+                    <button class="btn btn-export" onclick="exportSponsoringExcel()">Exporter sponsoring</button>
                 </div>
                 <div class="section-note">Représentation simple des contrats de sponsoring, avec recherche et filtres par état et montant.</div>
             </section>
@@ -375,6 +386,235 @@
                 deleteModal.classList.remove('active');
             }
         });
+
+        // Fonction de recherche en temps réel pour sponsors (Backoffice)
+        const searchSponsorBackofficeInput = document.getElementById('searchSponsorBackoffice');
+        const sponsorsBackofficeTable = document.getElementById('sponsorsBackofficeTable');
+        
+        if (searchSponsorBackofficeInput && sponsorsBackofficeTable) {
+            searchSponsorBackofficeInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsorsBackofficeTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom" (index 2)
+                        const nomCell = cells[2] ? cells[2].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Fonction de recherche en temps réel pour sponsoring (Backoffice)
+        const searchSponsoringBackofficeInput = document.getElementById('searchSponsoringBackoffice');
+        const sponsoringBackofficeTable = document.getElementById('sponsoringBackofficeTable');
+        
+        if (searchSponsoringBackofficeInput && sponsoringBackofficeTable) {
+            searchSponsoringBackofficeInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = sponsoringBackofficeTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        // Chercher dans la cellule "Nom Sponsoring" (index 1)
+                        const nomCell = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                        if (nomCell.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+
+
+
+        const sortSponsorsBackoffice = document.getElementById('sortSponsorsBackoffice');
+
+        if (sortSponsorsBackoffice) {
+            sortSponsorsBackoffice.addEventListener('change', function () {
+                const table = document.getElementById('sponsorsBackofficeTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const A = a.cells[2].textContent.toLowerCase();
+                    const B = b.cells[2].textContent.toLowerCase();
+                    return this.value === 'az' ? A.localeCompare(B) : B.localeCompare(A);
+                });
+
+                rows.forEach(r => tbody.appendChild(r));
+            });
+        }
+
+        // ===== SPONSORING FILTRES =====
+        const filterEtatBackoffice = document.getElementById('filterEtatBackoffice');
+        const sortMontantBackoffice = document.getElementById('sortMontantBackoffice');
+        const sortDateFinBackoffice = document.getElementById('sortDateFinBackoffice');
+function applyFiltersBackoffice() {
+    const table = document.getElementById('sponsoringBackofficeTable');
+    const tbody = table.querySelector('tbody');
+
+    let rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // reset affichage
+    rows.forEach(r => r.style.display = '');
+
+    // ===== FILTRE ETAT =====
+    if (filterEtatBackoffice.value !== 'tout') {
+        rows.forEach(row => {
+            const etat = row.cells[5].textContent
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            row.style.display = (etat === filterEtatBackoffice.value) ? '' : 'none';
+        });
+    }
+
+    // garder seulement visibles pour tri
+    rows = rows.filter(r => r.style.display !== 'none');
+
+    // ===== TRI MONTANT =====
+    if (sortMontantBackoffice.value) {
+        rows.sort((a, b) => {
+            const A = parseFloat(a.cells[4].textContent.replace(/[^\d.-]/g, '')) || 0;
+            const B = parseFloat(b.cells[4].textContent.replace(/[^\d.-]/g, '')) || 0;
+            return sortMontantBackoffice.value === 'asc' ? A - B : B - A;
+        });
+    }
+
+    // ===== TRI DATE =====
+    if (sortDateFinBackoffice.value) {
+        rows.sort((a, b) => {
+            const A = new Date(a.cells[3].textContent);
+            const B = new Date(b.cells[3].textContent);
+            return sortDateFinBackoffice.value === 'asc' ? A - B : B - A;
+        });
+    }
+
+    // réinjection propre
+    rows.forEach(r => tbody.appendChild(r));
+}
+
+        filterEtatBackoffice?.addEventListener('change', applyFiltersBackoffice);
+        sortMontantBackoffice?.addEventListener('change', applyFiltersBackoffice);
+        sortDateFinBackoffice?.addEventListener('change', applyFiltersBackoffice);
+
+
+
+    function exportSponsorsExcel() {
+    const table = document.getElementById("sponsorsBackofficeTable");
+
+    const wb = XLSX.utils.book_new();
+
+    // ⚡ conversion directe propre
+    const ws = XLSX.utils.table_to_sheet(table);
+
+    // supprimer colonne Actions proprement
+    const range = XLSX.utils.decode_range(ws['!ref']);
+
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: range.e.c });
+        delete ws[addr];
+    }
+
+    // AUTO WIDTH
+    applyAutoWidth(ws);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Sponsors");
+    XLSX.writeFile(wb, "sponsors.xlsx");
+}
+function formatExcelDate(value) {
+    if (!value) return "";
+
+    // déjà format ISO
+    if (typeof value === "string" && value.includes("-")) {
+        return value;
+    }
+
+    // Excel number date
+    if (typeof value === "number") {
+        const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+
+        if (!isNaN(date)) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, "0");
+            const d = String(date.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+        }
+    }
+
+    return "";
+}
+
+function exportSponsoringExcel() {
+    const table = document.getElementById("sponsoringBackofficeTable");
+    const wb = XLSX.utils.book_new();
+
+    const rows = [];
+    const tr = table.querySelectorAll("tr");
+
+    tr.forEach((row, rowIndex) => {
+        const cells = row.querySelectorAll("th, td");
+
+        const line = [];
+
+        cells.forEach((cell, colIndex) => {
+            const text = cell.innerText.trim();
+
+            // ❌ supprimer colonne ACTIONS (dernière colonne)
+            if (colIndex === cells.length - 1) return;
+
+            line.push(text);
+        });
+
+        rows.push(line);
+    });
+
+    // correction dates si besoin
+    for (let i = 1; i < rows.length; i++) {
+        rows[i][2] = formatExcelDate(rows[i][2]); // date début
+        rows[i][3] = formatExcelDate(rows[i][3]); // date fin
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    applyAutoWidth(ws);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Sponsoring");
+    XLSX.writeFile(wb, "sponsoring.xlsx");
+}
+function applyAutoWidth(ws) {
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const colWidths = [];
+
+    for (let C = range.s.c; C <= range.e.c; C++) {
+        let max = 10;
+
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+
+            if (cell && cell.v) {
+                const len = cell.v.toString().length;
+                if (len > max) max = len;
+            }
+        }
+
+        colWidths.push({ wch: Math.min(max + 2, 60) });
+    }
+
+    ws["!cols"] = colWidths;
+}
+
     </script>
 </body>
 </html>
