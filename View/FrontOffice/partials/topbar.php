@@ -163,6 +163,7 @@ $_frontBase  = str_repeat('../', $_relDepth);
             <a class="fo-link <?php echo $currentPage==='accueil'?'active':''; ?>" href="<?php echo $_frontBase; ?>accueil.php">Accueil</a>
             <a class="fo-link <?php echo $currentPage==='catalogue'?'active':''; ?>" href="<?php echo $_frontBase; ?>listMarathons.php">Catalogue</a>
 
+
             <?php if ($role === 'visiteur'): ?>
                 <a class="fo-link" href="<?php echo $_frontBase; ?>register.php">S'inscrire</a>
                 <a class="fo-cta" href="<?php echo $_frontBase; ?>login.php">Se connecter</a>

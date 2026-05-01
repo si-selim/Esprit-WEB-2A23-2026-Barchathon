@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../Controller/InscriptionMarathonController.php';
 require_once __DIR__ . '/../../Controller/MarathonController.php';
 require_once __DIR__ . '/../../Controller/CommandeController.php';
 require_once __DIR__ . '/../../Controller/LigneCommandeController.php';
+require_once __DIR__ . '/../../Controller/ProduitController.php';
 
 $user = getCurrentUser();
 if (!$user) {
@@ -23,11 +24,56 @@ $type = $_POST['type'] ?? '';
 $id = (int)($_POST['id'] ?? 0);
 $montant = (float)($_POST['montant'] ?? 0);
 $methode = $_POST['methode_paiement'] ?? '';
+$paymentMethodId = $_POST['payment_method_id'] ?? '';
+$d17_reference = trim($_POST['d17_reference'] ?? '');
+$paypal_email = trim($_POST['paypal_email'] ?? '');
 $parcours_id = isset($_POST['parcours_id']) ? (int)$_POST['parcours_id'] : 0;
 $stand_id = isset($_POST['stand_id']) ? (int)$_POST['stand_id'] : 0;
 
+function is_valid_email($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function is_valid_d17($value) {
+    return preg_match('/^[A-Za-z0-9\-]{5,30}$/', $value);
+}
+
 $message = '';
 $success = false;
+
+// Validation spécifique par méthode
+if ($methode === 'd17') {
+    if (!$d17_reference) {
+        $message = 'La référence D17 est requise.';
+    } elseif (!is_valid_d17($d17_reference)) {
+        $message = 'Référence D17 invalide. Utilisez uniquement lettres, chiffres et tirets.';
+    }
+}
+
+if ($methode === 'paypal') {
+    if (!$paypal_email) {
+        $message = 'L\'email PayPal est requis.';
+    } elseif (!is_valid_email($paypal_email)) {
+        $message = 'Email PayPal invalide.';
+    }
+}
+
+if ($methode === 'stripe' && !$paymentMethodId) {
+    $message = 'Aucun identifiant de paiement Stripe reçu. Réessayez.';
+}
+
+if ($message) {
+    $redirectUrl = "paiement.php?type=$type&id=$id&montant=$montant";
+    if ($parcours_id > 0) {
+        $redirectUrl .= "&parcours_id=$parcours_id";
+    }
+    if ($stand_id > 0) {
+        $redirectUrl .= "&stand_id=$stand_id";
+    }
+    $redirectUrl .= "&error=" . urlencode($message);
+    header('Location: ' . $redirectUrl);
+    exit;
+}
 
 if ($type === 'marathon') {
     $inscCtrl = new InscriptionMarathonController();
@@ -79,23 +125,40 @@ if ($type === 'commande') {
     $paiement_reussi = true; // Simulation
 
     if ($paiement_reussi) {
-        error_log("Process payment - UserId: $userId, StandId: " . ($stand_id ?: 'null') . ", Montant: $montant, Methode: $methode");
-        $commande = new Commande(null, $userId, $stand_id ?: null, date('Y-m-d H:i:s'), 'en cours', $montant, $methode);
-        $newCommandeId = $commandeC->addCommande($commande);
+        $prodCtrl = new ProduitController();
+        $cartValid = true;
 
-        if ($newCommandeId) {
-            if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-                foreach ($_SESSION['cart'] as $item) {
-                    $ligne = new LigneCommande(null, $newCommandeId, $item['idproduit'], $item['quantite'], $item['prix']);
-                    $ligneC->addLigneCommande($ligne);
+        if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $currentProduct = $prodCtrl->getProduit($item['idproduit']);
+                if (!$currentProduct || !$currentProduct['en_out_stock'] || $currentProduct['qte_stock'] < $item['quantite']) {
+                    $cartValid = false;
+                    $message = 'Stock insuffisant pour l’un des produits du panier. Ajustez votre commande avant de payer.';
+                    break;
                 }
             }
+        }
 
-            $_SESSION['cart'] = [];
-            $success = true;
-            $message = 'Paiement de la commande confirmé !';
-        } else {
-            $message = 'Erreur lors de la création de la commande.';
+        if ($cartValid) {
+            error_log("Process payment - UserId: $userId, StandId: " . ($stand_id ?: 'null') . ", Montant: $montant, Methode: $methode");
+            $commande = new Commande(null, $userId, $stand_id ?: null, date('Y-m-d H:i:s'), 'en cours', $montant, $methode);
+            $newCommandeId = $commandeC->addCommande($commande);
+
+            if ($newCommandeId) {
+                if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+                    foreach ($_SESSION['cart'] as $item) {
+                        $ligne = new LigneCommande(null, $newCommandeId, $item['idproduit'], $item['quantite'], $item['prix']);
+                        $ligneC->addLigneCommande($ligne);
+                        $prodCtrl->decrementStock($item['idproduit'], $item['quantite']);
+                    }
+                }
+
+                $_SESSION['cart'] = [];
+                $success = true;
+                $message = 'Paiement de la commande confirmé !';
+            } else {
+                $message = 'Erreur lors de la création de la commande.';
+            }
         }
     } else {
         $message = 'Paiement échoué. Veuillez réessayer.';

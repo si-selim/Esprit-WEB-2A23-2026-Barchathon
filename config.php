@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Africa/Tunis');
+
 class config
 {   private static $pdo = null;
     public static function getConnexion()

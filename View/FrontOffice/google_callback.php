@@ -59,6 +59,12 @@ $tokenRes = json_decode($tokenRaw, true);
 $accessToken = $tokenRes['access_token'] ?? '';
 if (!$accessToken) google_fail('Token d\'accès Google absent.');
 
+// Store tokens in session for Gmail API
+$_SESSION['google_access_token'] = $accessToken;
+if (isset($tokenRes['refresh_token'])) {
+    $_SESSION['google_refresh_token'] = $tokenRes['refresh_token'];
+}
+
 // 3. Fetch user profile
 $ch = curl_init('https://www.googleapis.com/oauth2/v3/userinfo');
 curl_setopt_array($ch, [

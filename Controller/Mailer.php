@@ -1,8 +1,21 @@
 <?php
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
 require_once __DIR__ . '/../config_mail.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 class Mailer {
     public static function send($to, $subject, $htmlBody) {
+        if (isset($_SESSION['google_access_token'])) {
+            return self::sendViaGmailAPI($to, $subject, $htmlBody);
+        } else {
+            return self::sendViaSMTP($to, $subject, $htmlBody);
+        }
+    }
+
+    private static function sendViaSMTP($to, $subject, $htmlBody) {
         $host = MAIL_HOST;
         $port = MAIL_PORT;
         $user = MAIL_USERNAME;
@@ -78,5 +91,23 @@ class Mailer {
 
     private static function encodeHeader($text) {
         return '=?UTF-8?B?' . base64_encode($text) . '?=';
+    }
+
+    private static function sendViaGmailAPI($to, $subject, $htmlBody) {
+        if (!class_exists('Google_Client')) {
+            return self::sendViaSMTP($to, $subject, $htmlBody);
+        }
+        try {
+            $client = new Google_Client();
+            $client->setAccessToken($_SESSION['google_access_token']);
+            $service = new Google_Service_Gmail($client);
+            $message = new Google_Service_Gmail_Message();
+            $rawMessage = "From: me\r\nTo: $to\r\nSubject: $subject\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n" . $htmlBody;
+            $message->setRaw(base64_encode($rawMessage));
+            $service->users_messages->send('me', $message);
+            return true;
+        } catch (Exception $e) {
+            return self::sendViaSMTP($to, $subject, $htmlBody);
+        }
     }
 }

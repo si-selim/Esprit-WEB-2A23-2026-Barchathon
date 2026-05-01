@@ -5,11 +5,13 @@ require_once __DIR__ . '/../../Controller/InscriptionMarathonController.php';
 require_once __DIR__ . '/../../Controller/ParcoursController.php';
 require_once __DIR__ . '/../../Controller/StandController.php';
 require_once __DIR__ . '/../../Controller/MarathonController.php';
+require_once __DIR__ . '/../../Controller/ProduitController.php';
 
 $pCtrl = new ParcoursController();
 $sCtrl = new StandController();
 $mCtrl = new MarathonController();
 $inscCtrl = new InscriptionMarathonController();
+$prodCtrl = new ProduitController();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $currentPage = 'catalogue';
@@ -71,20 +73,101 @@ if ($role === 'participant' && $userId) {
 
         .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-bottom:36px; }
 
-        .s-card { background:white; border-radius:18px; border:1px solid rgba(16,42,67,.07); box-shadow:0 6px 20px rgba(16,42,67,.07); overflow:hidden; transition:transform .2s; }
-        .s-card:hover { transform:translateY(-3px); }
-        .stand-header { background:linear-gradient(135deg,#102a43,#1e3a5f); padding:14px 16px; color:white; }
-        .stand-header h3 { font-size:1rem; margin-bottom:3px; }
-        .stand-pos { font-size:0.82rem; opacity:.8; }
-        .s-body { padding:16px; }
-        .s-desc { color:#486581; font-size:0.88rem; line-height:1.6; margin-bottom:14px; }
-        .btn-produits { display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,var(--teal),#14b8a6); color:white; border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:0.85rem; cursor:pointer; text-decoration:none; transition:transform .15s; }
-        .btn-produits:hover { transform:translateY(-1px); }
+        .p-card { background:white; border-radius:18px; border:1px solid rgba(16,42,67,.07); box-shadow:0 6px 20px rgba(16,42,67,.07); overflow:hidden; transition:transform .2s; }
+        .p-card:hover { transform:translateY(-3px); }
+        .diff-band { padding:9px 16px; font-weight:800; font-size:0.83rem; letter-spacing:.04em; }
+        .diff-stand { background:linear-gradient(90deg,#e0f2fe,#bae6fd); color:#0369a1; }
+        .p-body { padding:16px; }
+        .p-body h3 { font-size:1rem; margin-bottom:10px; }
+        .p-route { display:grid; gap:6px; font-size:0.87rem; color:#486581; background:#f8fafc; border-radius:11px; padding:11px; margin-bottom:10px; }
+        .dist-row { display:flex; justify-content:space-between; align-items:center; }
+        .dist-val { font-size:1.35rem; font-weight:900; color:var(--teal); }
+
+        .btn { text-decoration:none; padding:10px 15px; border-radius:12px; font-weight:700; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:0.9rem; transition:opacity .15s,transform .15s,box-shadow .15s; }
+        .btn:hover { opacity:.9; transform:translateY(-1px); }
+        .btn-primary { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; box-shadow:0 4px 14px rgba(22,163,74,.3); }
+        .btn-primary:hover { box-shadow:0 6px 18px rgba(22,163,74,.4); }
+
+        .parcours-filter { background:white; border-radius:14px; padding:14px 16px; margin-bottom:18px; box-shadow:0 4px 14px rgba(16,42,67,.06); display:flex; gap:10px; flex-wrap:wrap; }
+        .p-search-wrap { position:relative; flex:2 1 200px; min-width:0; }
+        .p-search-wrap input { width:100%; border-radius:10px; border:1px solid #cbd5e1; padding:9px 13px; font:inherit; font-size:0.9rem; }
+        .p-search-wrap input:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(15,118,110,.1); }
+
+        .btn-mod { display:inline-flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; background:linear-gradient(135deg,#cbd5e1,#e2e8f0); color:#475569; border-radius:10px; font-weight:700; font-size:0.85rem; border:0; cursor:pointer; transition:opacity .15s,transform .15s,box-shadow .15s; box-shadow:0 3px 10px rgba(203,213,225,.4); }
+        .btn-mod:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 5px 14px rgba(203,213,225,.5); }
+        .btn-del-card { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border-radius:10px; font-weight:700; font-size:0.85rem; border:0; cursor:pointer; transition:opacity .15s,transform .15s,box-shadow .15s; box-shadow:0 3px 10px rgba(220,38,38,.3); }
+        .btn-del-card:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 5px 14px rgba(220,38,38,.4); }
 
         @media(max-width:860px){ .detail-hero{grid-template-columns:1fr;} .detail-img{max-height:250px;} }
+
+        /* Toast Notifications */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+            z-index: 10000;
+            max-width: 400px;
+        }
+
+        .toast-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
+<?php 
+// Afficher les messages de notification
+if (isset($_SESSION['success_message'])): ?>
+    <script>
+        window.addEventListener('load', function() {
+            showToast('<?php echo addslashes($_SESSION['success_message']); ?>', 'success');
+        });
+    </script>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
+<?php 
+if (isset($_SESSION['error_message'])): ?>
+    <script>
+        window.addEventListener('load', function() {
+            showToast('<?php echo addslashes($_SESSION['error_message']); ?>', 'error');
+        });
+    </script>
+    <?php unset($_SESSION['error_message']); ?>
+<?php endif; ?>
+
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 <div class="page">
     <a class="back-link" href="detailMarathon.php?id=<?php echo $p['id_marathon']; ?>">← Retour au marathon</a>
@@ -154,35 +237,89 @@ if ($role === 'participant' && $userId) {
     <!-- STANDS SECTION -->
     <div class="section-h">
         <h2>🏪 Stands</h2>
-        <span class="count"><?php echo count($stands); ?></span>
+        <span class="count" id="standsCount"><?php echo count($stands); ?></span>
     </div>
 
-    <?php if ($isOrganizer): ?>
+    <!-- Stands Filter -->
+    <div class="parcours-filter">
+        <div class="p-search-wrap" style="flex:1">
+            <input type="text" id="searchStand" placeholder="🔍 Rechercher par nom de stand ou position..." autocomplete="off" onkeyup="filterStands()">
+        </div>
+    </div>
+
+    <?php if ($role === 'organisateur'): ?>
     <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;justify-content:flex-end;">
-        <a href="addStand.php?parcours_id=<?php echo $id; ?>" class="btn btn-primary" style="padding:11px 20px;"><i class="fa-solid fa-plus"></i> Ajouter un stand</a>
+        <a href="Stands/crud-stand.php?parcours_id=<?php echo $id; ?>" class="btn btn-primary" style="padding:11px 20px;"><i class="fa-solid fa-plus"></i> Ajouter un stand</a>
     </div>
     <?php endif; ?>
 
-    <div class="cards-grid">
+    <div class="cards-grid" id="standsGrid">
         <?php if (empty($stands)): ?>
             <div class="empty-box">🏪 Aucun stand trouvé pour ce parcours.</div>
         <?php else: ?>
             <?php foreach ($stands as $s):
                 $standId = $s['id_stand'] ?? $s['ID_stand'] ?? 0;
             ?>
-            <div class="s-card">
-                <div class="stand-header">
-                    <h3><?php echo htmlspecialchars($s['nom_stand'] ?? $s['nom_stand']); ?></h3>
-                    <div class="stand-pos"><?php echo htmlspecialchars($s['position'] ?? ''); ?></div>
+            <div class="p-card stand-card-item">
+                <div class="diff-band diff-stand">🏪 Stand</div>
+                <div class="p-body">
+                    <h3><?php echo htmlspecialchars($s['nom_stand'] ?? ''); ?></h3>
+                    <div class="p-route">
+                        <span>📍 <strong>Position :</strong> <?php echo htmlspecialchars($s['position'] ?? ''); ?></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?php echo htmlspecialchars($s['description'] ?? ''); ?>">📝 <strong>Description :</strong> <?php echo htmlspecialchars($s['description'] ?? 'Aucune description'); ?></span>
+                    </div>
+                    <div class="dist-row">
+                        <div>
+                            <div class="dist-val"><?php echo $prodCtrl->countProduitsByStand($standId); ?> <span style="font-size:0.85rem;color:#64748b;font-weight:700;">produit(s)</span></div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;flex-grow:1;margin-top:10px;">
+                            <a href="Produits/produit.php?stand_id=<?php echo htmlspecialchars($standId); ?>&parcours_id=<?php echo $id; ?>" style="background:linear-gradient(135deg,#149184,#0eb19d);color:white;padding:6px 15px;border-radius:20px;text-decoration:none;font-weight:bold;font-size:0.85rem;display:flex;align-items:center;gap:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                                Voir détail <span style="font-size:1.1rem;">→</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="s-body">
-                    <div class="s-desc"><?php echo htmlspecialchars($s['description'] ?? ''); ?></div>
-                    <a href="produit.php?stand_id=<?php echo htmlspecialchars($standId); ?>&parcours_id=<?php echo $id; ?>" class="btn-produits">Voir les produits</a>
+                <?php if ($role === 'organisateur'): ?>
+                <div class="p-actions" style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;gap:8px;">
+                    <a href="Stands/updateStand.php?searchVal=<?php echo $standId; ?>&redirect_parcours=<?php echo $id; ?>" class="btn-mod" style="flex:1;text-align:center;padding:9px 8px;"><i class="fa-solid fa-pen-to-square"></i> Modifier</a>
+                    <a href="Stands/deleteStand.php?id=<?php echo $standId; ?>&parcours_id=<?php echo $id; ?>" class="btn-del-card" style="flex:1;padding:9px 8px;" onclick="return confirm('Voulez-vous vraiment supprimer ce stand ?')"><i class="fa-solid fa-trash"></i> Supprimer</a>
                 </div>
+                <?php endif; ?>
             </div>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+function filterStands() {
+    var val = document.getElementById('searchStand').value.toLowerCase();
+    var cards = document.querySelectorAll('.stand-card-item');
+    var count = 0;
+    cards.forEach(function(card) {
+        var nom = card.querySelector('h3').textContent.toLowerCase();
+        var routeInfo = card.querySelector('.p-route').textContent.toLowerCase();
+        if (nom.indexOf(val) > -1 || routeInfo.indexOf(val) > -1) {
+            card.style.display = '';
+            count++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    document.getElementById('standsCount').textContent = count;
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+</script>
 </body>
 </html>

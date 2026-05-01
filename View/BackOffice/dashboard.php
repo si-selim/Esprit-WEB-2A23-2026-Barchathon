@@ -6,6 +6,8 @@ require_once __DIR__ . '/../../Controller/ParcoursController.php';
 require_once __DIR__ . '/../../Controller/UserController.php';
 require_once __DIR__ . '/../../Controller/CommandeController.php';
 require_once __DIR__ . '/../../Controller/LigneCommandeController.php';
+require_once __DIR__ . '/../../Controller/StandController.php';
+require_once __DIR__ . '/../../Controller/ProduitController.php';
 
 if (!isAdmin()) { header('Location: ../FrontOffice/accueil.php'); exit; }
 
@@ -22,6 +24,8 @@ $pCtrl = new ParcoursController();
 $uCtrl = new UserController();
 $cCtrl = new CommandeController();
 $lCtrl = new LigneCommandeController();
+$sCtrl = new StandController();
+$prodCtrl = new ProduitController();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['del_u']) || isset($_POST['ban_u']) || isset($_POST['unban_u']))) {
     if (!dashCsrfOk()) { http_response_code(403); exit('CSRF token invalide.'); }
@@ -31,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['del_u']) || isset($_
 }
 if (isset($_GET['del_m'])) { $mCtrl->supprimerMarathon((int)$_GET['del_m']); header('Location: dashboard.php?tab=marathons'); exit; }
 if (isset($_GET['del_p'])) { $pCtrl->supprimerParcours((int)$_GET['del_p']); header('Location: dashboard.php?tab=parcours'); exit; }
+if (isset($_GET['del_s'])) { $sCtrl->deleteStand((int)$_GET['del_s']); header('Location: dashboard.php?tab=stands'); exit; }
+if (isset($_GET['del_prod'])) { $prodCtrl->deleteProduit((int)$_GET['del_prod']); header('Location: dashboard.php?tab=produits'); exit; }
 
 if (isset($_GET['delete_commande'])) {
     $cCtrl->deleteCommande((int) $_GET['delete_commande']);
@@ -263,6 +269,7 @@ $currentPage = 'dashboard';
         <a class="side-link <?php echo $activeTab==='utilisateurs'?'active':''; ?>" href="dashboard.php?tab=utilisateurs">Utilisateurs</a>
         <a class="side-link <?php echo $activeTab==='marathons'?'active':''; ?>" href="dashboard.php?tab=marathons">Marathons</a>
         <a class="side-link <?php echo $activeTab==='stands'?'active':''; ?>" href="dashboard.php?tab=stands">Stands</a>
+        <a class="side-link <?php echo $activeTab==='produits'?'active':''; ?>" href="dashboard.php?tab=produits">Produits</a>
         <a class="side-link <?php echo $activeTab==='commandes'?'active':''; ?>" href="dashboard.php?tab=commandes">Commandes</a>
         <a class="side-link <?php echo $activeTab==='sponsors'?'active':''; ?>" href="dashboard.php?tab=sponsors">Sponsors</a>
         <a class="side-link" href="../FrontOffice/accueil.php">Retour</a>
@@ -727,16 +734,210 @@ $currentPage = 'dashboard';
         </div>
     </section>
 
-<?php elseif ($activeTab === 'stands'): ?>
+<?php elseif ($activeTab === 'stands'): 
+    $searchS = trim($_GET['searchS'] ?? '');
+    $lat = $_GET['lat'] ?? null;
+    $lon = $_GET['lon'] ?? null;
 
+    if ($lat !== null && $lon !== null) {
+        $listStands = $sCtrl->getRecommendationsByCoords((float)$lat, (float)$lon);
+    } else {
+        $listStands = $sCtrl->listStands();
+        if ($searchS !== '') {
+            $filteredS = [];
+            foreach ($listStands as $st) {
+                if (stripos($st['nom_stand'], $searchS) !== false || stripos((string)$st['ID_stand'], $searchS) !== false || stripos($st['position'], $searchS) !== false) {
+                    $filteredS[] = $st;
+                }
+            }
+            $listStands = $filteredS;
+        }
+    }
+?>
     <div class="head fade-in">
         <div>
-            <h1>Stands</h1>
-            <div class="muted">Liste des stands partenaires.</div>
+            <h1>Gestion des Stands</h1>
+            <div class="muted">Liste complète — consultation et suppression uniquement.</div>
+        </div>
+        <div class="actions" style="display:flex; gap:10px;">
+            <button type="button" onclick="toggleIframe('iframe-stands')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> Statistiques</button>
+            <button onclick="exportTableToPDF('table-stands', 'liste_stands.pdf', 'Rapport des Stands')" class="btn btn-pdf btn-sm"><i class="fa-solid fa-file-pdf"></i> Exporter PDF</button>
         </div>
     </div>
+
+    <div id="iframe-stands" class="fade-in" style="display:none; width:100%; margin-bottom: 24px; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+        <iframe src="../FrontOffice/Stands/stat.php" style="width:100%; height:900px; border:none; display:block;"></iframe>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-val"><?php echo count($listStands); ?></div>
+            <div class="stat-lbl">Stands affichés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val"><?php echo count($sCtrl->listStands()); ?></div>
+            <div class="stat-lbl">Total des Stands</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <form method="GET" class="filter-bar" style="align-items: center;" onsubmit="return false;">
+            <input type="hidden" name="tab" value="stands">
+            <input type="text" name="searchS" placeholder="🔍 Rechercher par nom, ID ou position..." value="<?php echo htmlspecialchars($searchS); ?>" style="flex:1;" oninput="liveFilterTable('table-stands', this.value)">
+            <button type="button" id="btn-autour-moi" onclick="searchByLocation()" class="btn" style="background-color: #10b981; color: white; padding: 10px 20px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 6px rgba(16,185,129,0.2);"><i class="fa-solid fa-location-dot"></i> Autour de moi</button>
+        </form>
+    </div>
+
     <section class="section-card fade-in">
-        <p style="color:var(--muted);padding:20px;text-align:center;">Module Stands en cours d'integration.</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 class="section-title" style="margin:0;">Liste des Stands</h2>
+            <span class="tag"><?php echo count($listStands); ?> resultats</span>
+        </div>
+        <div class="table-shell">
+            <table id="table-stands">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom du Stand</th>
+                        <th>Parcours</th>
+                        <th>Position</th>
+                        <th>Description</th>
+                        <th>Produits</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($listStands)): ?>
+                        <tr><td colspan="7" style="text-align:center;color:var(--muted);">Aucun stand trouve.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($listStands as $s): ?>
+                        <tr>
+                            <td><strong>#<?= $s['ID_stand'] ?></strong></td>
+                            <td><strong><?= htmlspecialchars($s['nom_stand']) ?></strong></td>
+                            <td><span class="tag">Parcours #<?= htmlspecialchars($s['ID_parcours']) ?></span></td>
+                            <td>
+                                <?php if (isset($s['distance_km'])): ?>
+                                    <span class="tag" style="background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.2); font-weight:bold;">
+                                        📍 <?= htmlspecialchars($s['position']) ?> (<?= $s['distance_km'] ?> km)
+                                    </span>
+                                <?php else: ?>
+                                    <span class="tag tag-easy">📍 <?= htmlspecialchars($s['position']) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($s['description'] ?? '-') ?></td>
+                            <td><span class="tag tag-med"><?= $prodCtrl->countProduitsByStand($s['ID_stand']) ?> produits</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <a class="btn btn-danger btn-sm" href="dashboard.php?tab=stands&del_s=<?= $s['ID_stand'] ?>" onclick="return confirm('Voulez-vous vraiment supprimer ce stand ?')">Supprimer</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+<?php elseif ($activeTab === 'produits'): 
+    $searchP = trim($_GET['searchP'] ?? '');
+    $listProduits = $prodCtrl->listProduits('ID_produit', 'ASC');
+    
+    if ($searchP !== '') {
+        $filteredP = [];
+        foreach ($listProduits as $p) {
+            if (stripos($p['nom_produit'], $searchP) !== false || stripos((string)$p['ID_produit'], $searchP) !== false || stripos($p['type'], $searchP) !== false) {
+                $filteredP[] = $p;
+            }
+        }
+        $listProduits = $filteredP;
+    }
+?>
+    <div class="head fade-in">
+        <div>
+            <h1>Gestion des Produits</h1>
+            <div class="muted">Liste complète — consultation et suppression uniquement.</div>
+        </div>
+        <div class="actions" style="display:flex; gap:10px;">
+            <button type="button" onclick="toggleIframe('iframe-produits')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-pie"></i> Statistiques</button>
+            <button onclick="exportTableToPDF('table-produits', 'liste_produits.pdf', 'Catalogue des Produits')" class="btn btn-pdf btn-sm"><i class="fa-solid fa-file-pdf"></i> Exporter PDF</button>
+        </div>
+    </div>
+
+    <div id="iframe-produits" class="fade-in" style="display:none; width:100%; margin-bottom: 24px; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+        <iframe src="../FrontOffice/Produits/statP.php" style="width:100%; height:700px; border:none; display:block;"></iframe>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-val"><?php echo count($listProduits); ?></div>
+            <div class="stat-lbl">Produits affichés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val"><?php echo count($prodCtrl->listProduits('ID_produit', 'ASC')); ?></div>
+            <div class="stat-lbl">Total des Produits</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <form method="GET" class="filter-bar" style="align-items: center;" onsubmit="return false;">
+            <input type="hidden" name="tab" value="produits">
+            <input type="text" name="searchP" placeholder="🔍 Rechercher par nom, ID ou type..." value="<?php echo htmlspecialchars($searchP); ?>" style="flex:1; border-radius: 8px; padding: 10px 14px; border: 1px solid #cbd5e1;" oninput="liveFilterTable('table-produits', this.value)">
+        </form>
+    </div>
+
+    <section class="section-card fade-in">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 class="section-title" style="margin:0;">Liste des Produits</h2>
+            <span class="tag"><?php echo count($listProduits); ?> resultats</span>
+        </div>
+        <div class="table-shell">
+            <table id="table-produits">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom du Produit</th>
+                        <th>Type</th>
+                        <th>Stand</th>
+                        <th>Quantité</th>
+                        <th>Stock</th>
+                        <th>Prix (TND)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($listProduits)): ?>
+                        <tr><td colspan="8" style="text-align:center;color:var(--muted);">Aucun produit trouve.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($listProduits as $p): ?>
+                        <tr>
+                            <td><strong>#<?= $p['ID_produit'] ?></strong></td>
+                            <td><strong><?= htmlspecialchars($p['nom_produit']) ?></strong></td>
+                            <td><span class="tag tag-med"><?= htmlspecialchars($p['type']) ?></span></td>
+                            <td><span class="tag">Stand #<?= htmlspecialchars($p['ID_stand']) ?></span></td>
+                            <td><?= htmlspecialchars($p['qte_stock']) ?></td>
+                            <td>
+                                <?php 
+                                $stockStr = $p['en_out_stock'];
+                                $isInStock = (stripos($stockStr, 'dispo') !== false || $stockStr === '1' || $stockStr === 1);
+                                if ($isInStock): ?>
+                                    <span class="tag tag-easy">En Stock</span>
+                                <?php else: ?>
+                                    <span class="tag tag-no">Rupture</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><strong><?= number_format($p['prix_produit'], 2) ?></strong></td>
+                            <td>
+                                <div class="table-actions">
+                                    <a class="btn btn-danger btn-sm" href="dashboard.php?tab=produits&del_prod=<?= $p['ID_produit'] ?>" onclick="return confirm('Voulez-vous vraiment supprimer ce produit ?')">Supprimer</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 <?php elseif ($activeTab === 'commandes'): ?>
@@ -1104,13 +1305,363 @@ function deleteSelectedLignes() {
         window.location.href = '?tab=commandes&delete_lignes=' + ids.join(',');
     }
 }
+
+// ==========================
+// STAND MANAGEMENT JS
+// ==========================
+let isEditingStand = false;
+
+function toggleEdit(btn, id) {
+    if (isEditingStand) {
+        alert("Veuillez enregistrer la ligne en cours d'édition.");
+        return;
+    }
+    const row = document.getElementById('row-' + id);
+    const editables = row.querySelectorAll('.editable');
+    editables.forEach(td => {
+        const text = td.innerText;
+        const field = td.getAttribute('data-field');
+        const input = document.createElement('input');
+        input.type = (field === 'ID_parcours') ? 'number' : 'text';
+        input.value = text;
+        input.className = 'edit-input';
+        input.style.width = '100%';
+        td.innerHTML = '';
+        td.appendChild(input);
+    });
+    isEditingStand = true;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    btn.className = 'btn-icon save';
+    btn.onclick = function() { saveStand(btn, id); };
+}
+
+function saveStand(btn, id) {
+    const row = document.getElementById('row-' + id);
+    const editables = row.querySelectorAll('.editable');
+    const formData = new FormData();
+    formData.append('ID_stand', id);
+    editables.forEach(td => {
+        const input = td.querySelector('input');
+        formData.append(td.getAttribute('data-field'), input.value);
+    });
+
+    fetch('../FrontOffice/updateStandAjax.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.text())
+    .then(res => {
+        if (res === 'SUCCESS') {
+            editables.forEach(td => {
+                td.innerText = td.querySelector('input').value;
+            });
+            isEditingStand = false;
+            btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+            btn.className = 'btn-icon';
+            btn.onclick = function() { toggleEdit(btn, id); };
+        } else {
+            alert("Erreur lors de la sauvegarde : " + res);
+        }
+    });
+}
+
+function filterStands() {
+    const input = document.getElementById('standSearchInput');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('#stands-table tbody tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+function exportTableToPDF(tableId, filename, title) {
+    if (!window.jspdf) {
+        alert("La bibliothèque PDF n'est pas chargée.");
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text(title, 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text("Généré le: " + new Date().toLocaleString(), 14, 30);
+
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const headers = [];
+    const rows = [];
+
+    const ths = table.querySelectorAll('thead th');
+    for (let i = 0; i < ths.length - 1; i++) {
+        headers.push(ths[i].innerText.replace(' ⇅', '').trim());
+    }
+
+    const trs = table.querySelectorAll('tbody tr');
+    trs.forEach(tr => {
+        const row = [];
+        const tds = tr.querySelectorAll('td');
+        if (tds.length > 1) { 
+            for (let i = 0; i < tds.length - 1; i++) {
+                row.push(tds[i].innerText.trim());
+            }
+            rows.push(row);
+        }
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: rows,
+        startY: 35,
+        theme: 'striped',
+        headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255] },
+        margin: { top: 35 }
+    });
+
+    doc.save(filename);
+}
+
+function searchByLocation() {
+    const overlay = document.getElementById('recoOverlay');
+    if (!overlay) return;
+    
+    // Afficher le modal en mode chargement
+    overlay.classList.add('active');
+    document.getElementById('reco-loading').style.display = 'block';
+    document.getElementById('reco-results').style.display = 'none';
+
+    if (!navigator.geolocation) {
+        alert("La géolocalisation n'est pas supportée par votre navigateur.");
+        closeRecoModal();
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            document.getElementById('my-coords-text').innerText = lat.toFixed(8) + ', ' + lon.toFixed(8);
+            fetchRecommendations(lat, lon);
+        },
+        (error) => {
+            console.warn("Erreur géolocalisation :", error.message);
+            const fallbackLat = 36.8065;
+            const fallbackLon = 10.1815;
+            document.getElementById('my-coords-text').innerText = fallbackLat + ', ' + fallbackLon;
+            fetchRecommendations(fallbackLat, fallbackLon);
+        },
+        { timeout: 7000, enableHighAccuracy: true, maximumAge: 0 }
+    );
+}
+
+function liveFilterTable(tableId, query) {
+    const filter = query.toLowerCase();
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const trs = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < trs.length; i++) { // Skip header row
+        const row = trs[i];
+        if (row.cells.length <= 1) continue; // Skip empty state messages
+        
+        const textContent = row.textContent || row.innerText;
+        if (textContent.toLowerCase().indexOf(filter) > -1) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    }
+}
+
+function toggleIframe(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            el.style.display = 'none';
+        }
+    }
+}
+
+function fetchRecommendations(lat, lon) {
+    fetch(`Stands/api_recommander_admin.php?lat=${lat}&lon=${lon}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('reco-grid-container');
+            container.innerHTML = '';
+            
+            if (data.error) {
+                alert(data.error);
+                closeRecoModal();
+                return;
+            }
+
+            data.forEach(stand => {
+                const badgeClass = stand.en_stock > 0 ? 'reco-tag' : 'reco-tag-out';
+                const card = `
+                    <div class="reco-card" style="position: relative;">
+                        <div style="position: absolute; top: 10px; right: 10px; font-size: 0.7rem; font-weight: 800; color: #0f766e; background: #f0fdf4; padding: 2px 8px; border-radius: 10px; border: 1px solid #dcfce7;">
+                            ${stand.label}
+                        </div>
+                        <div class="reco-card-icon" style="font-size: 1.5rem;">🏪</div>
+                        <div class="reco-card-info">
+                            <h4 style="margin-bottom: 2px; padding-right: 60px;">${stand.nom_stand}</h4>
+                            <div class="reco-card-dist" style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #1e293b;">
+                                <span style="color: #e11d48;">📍</span> Dist: <span style="color: #334155;">${stand.distance_km} km</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: #94a3b8; font-style: italic; margin-top: 2px;">
+                                📍 ${stand.position || 'N/A'}
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <span style="font-size: 0.7rem; color: #64748b;">📦 <strong>${stand.total_produits}</strong> produits</span>
+                                <span style="font-size: 0.7rem; color: ${stand.en_stock > 0 ? '#166534' : '#991b1b'}; font-weight: 700;">
+                                    ${stand.en_stock > 0 ? '✅ '+stand.en_stock+' en stock' : '❌ Rupture'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+
+            setTimeout(() => {
+                document.getElementById('reco-loading').style.display = 'none';
+                document.getElementById('reco-results').style.display = 'block';
+            }, 500);
+        })
+        .catch(err => {
+            alert("Erreur lors de la récupération des recommandations.");
+            closeRecoModal();
+        });
+}
+
+function closeRecoModal() {
+    const overlay = document.getElementById('recoOverlay');
+    if (overlay) overlay.classList.remove('active');
+}
 </script>
+
+<style>
+/* MODAL RECOMMANDATION GEOGRAPHIQUE */
+.reco-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+    z-index: 9999; display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.reco-overlay.active { display: flex; opacity: 1; }
+
+.reco-modal {
+    background: #ffffff; width: 95%; max-width: 700px;
+    border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    position: relative; transform: translateY(20px); transition: transform 0.3s ease;
+    max-height: 90vh; display: flex; flex-direction: column;
+}
+.reco-overlay.active .reco-modal { transform: translateY(0); }
+
+#reco-results { overflow-y: auto; padding-right: 10px; }
+#reco-results::-webkit-scrollbar { width: 6px; }
+#reco-results::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+.reco-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 32px; height: 32px; background: #f1f5f9; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none; color: #64748b; font-weight: bold; transition: 0.2s;
+}
+.reco-close:hover { background: #e2e8f0; color: #0f172a; }
+
+.reco-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+.reco-header-icon {
+    background: #e0f2fe; width: 48px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+}
+.reco-header h2 { margin: 0; color: #0f172a; font-size: 1.5rem; font-weight: 800; }
+
+.reco-main-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;
+    padding: 20px; display: flex; align-items: center; gap: 20px; position: relative; margin-bottom: 30px;
+}
+.reco-main-badge {
+    position: absolute; top: 15px; right: 15px; background: #10b981; color: white;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800;
+}
+.reco-main-avatar {
+    background: #1e293b; color: white; width: 60px; height: 60px; border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; line-height: 1.2;
+}
+.reco-main-avatar span { font-size: 0.7rem; opacity: 0.7; }
+.reco-main-info h3 { margin: 0 0 5px 0; color: #0f172a; font-size: 1.2rem; font-weight: 800; }
+.reco-main-loc { color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
+.reco-tag { background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; margin-left: 10px; }
+
+.reco-section-title { display: flex; align-items: center; gap: 10px; color: #334155; font-weight: 800; font-size: 1rem; margin-bottom: 15px; }
+.reco-section-icon { background: #eff6ff; color: #3b82f6; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+.reco-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.reco-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 15px; transition: 0.2s; }
+.reco-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.reco-card-icon { background: #f1f5f9; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.reco-card-info h4 { margin: 0 0 4px 0; color: #1e293b; font-size: 1rem; font-weight: 700; }
+.reco-card-dist { color: #64748b; font-size: 0.8rem; }
+.reco-card-dist strong { color: #334155; }
+.reco-card-pos { font-size: 0.75rem; opacity: 0.6; margin-left: 4px; }
+
+#reco-loading { text-align: center; padding: 40px 0; }
+.search-anim-icon { font-size: 3rem; margin-bottom: 20px; animation: bounce 1.5s infinite; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+#reco-loading h3 { color: #0f172a; margin-bottom: 5px; }
+#reco-loading p { color: #64748b; font-size: 0.9rem; }
+</style>
+
+<div class="reco-overlay" id="recoOverlay">
+    <div class="reco-modal">
+        <button class="reco-close" onclick="closeRecoModal()">✕</button>
+        
+        <div id="reco-loading">
+            <div class="search-anim-icon">🔍</div>
+            <h3>Recherche en cours...</h3>
+            <p>Nous trouvons les meilleurs stands pour vous.</p>
+        </div>
+
+        <div id="reco-results" style="display: none;">
+            <div class="reco-header">
+                <div class="reco-header-icon">🔍</div>
+                <h2>Résultat de recherche</h2>
+            </div>
+
+            <div class="reco-main-card">
+                <div class="reco-main-badge">✓ RÉSULTAT PRINCIPAL</div>
+                <div class="reco-main-avatar"><span>ID</span>#Moi</div>
+                <div class="reco-main-info">
+                    <h3>Votre Position</h3>
+                    <div class="reco-main-loc">
+                        📍 <span id="my-coords-text">Calcul en cours...</span> 
+                        <span class="reco-tag">Parcours GPS</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reco-section-title">
+                <div class="reco-section-icon">🔄</div> Recommandations à proximité
+            </div>
+            <div class="reco-grid" id="reco-grid-container"></div>
+        </div>
+    </div>
+</div>
 <script>
 (function(){
     function setRole(){ if(document.body) document.body.dataset.userRole = <?php echo json_encode($user['role'] ?? 'visiteur'); ?>; }
     if(document.body) setRole(); else document.addEventListener('DOMContentLoaded', setRole);
 })();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script src="../assets/js/voice-nav.js" defer></script>
 </body>
 </html>

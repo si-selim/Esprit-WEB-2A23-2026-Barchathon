@@ -110,18 +110,30 @@ class CommandeController {
         }
     }
 
-    public function showCommande($id) {
-        $sql="SELECT * FROM commande WHERE idcommande = :id";
+    public function updateCommandeStatus($id, $statut) {
+        $sql = "UPDATE commande SET statut = :statut WHERE idcommande = :id";
         $db = config::getConnexion();
-        $query = $db->prepare($sql);
-        $query->bindValue(':id', $id);
-
         try {
-            $query->execute();
-            $commande = $query->fetch();
-            return $commande;
-        } catch(Exception $e) {
-            die('Error: '. $e->getMessage());
+            $query = $db->prepare($sql);
+            $query->execute([
+                'id' => $id,
+                'statut' => $statut
+            ]);
+            return $query->rowCount() > 0;
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+    public function showCommande($id) {
+        $sql = "SELECT * FROM commande WHERE idcommande = :id";
+        $db = config::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['id' => $id]);
+            return $query->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
         }
     }
 }
