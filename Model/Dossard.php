@@ -27,7 +27,7 @@ private $modePaiement;
         $this->id_inscription = $id_inscription;
     }
 
-    // GETTERS
+    
     public function getNom() { return $this->nom; }
     public function getNumero() { return $this->numero; }
     public function getTaille() { return $this->taille; }
@@ -36,7 +36,7 @@ private $modePaiement;
     public function getCircuit() { return $this->circuit; }
 public function getModePaiement() { return $this->modePaiement; }
 
-    // SETTERS
+    
     public function setNom($nom) { $this->nom = $nom; }
     public function setNumero($numero) { $this->numero = $numero; }
     public function setTaille($taille) { $this->taille = $taille; }

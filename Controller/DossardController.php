@@ -2,30 +2,37 @@
 require_once __DIR__ . "/../Model/config.php";
 require_once __DIR__ . "/../Model/Dossard.php";
 require_once __DIR__ . "/../lib/phpqrcode/qrlib.php";
+
+/* =========================
+   ✅ VALIDATION COULEUR HEX
+========================= */
+function isValidHex($color) {
+    return preg_match('/^#[0-9A-Fa-f]{6}$/', $color);
+}
+
 class DossardController {
 
     public function add(Dossard $dossard) {
 
-    $db = Config::getConnexion();
+        $db = Config::getConnexion();
 
-    // 1. INSERT
-    $sql = "INSERT INTO dossard (nom, numero, taille, couleur, id_inscription)
-            VALUES (:nom, :numero, :taille, :couleur, :id_inscription)";
+        // 1. INSERT
+        $sql = "INSERT INTO dossard (nom, numero, taille, couleur, id_inscription)
+                VALUES (:nom, :numero, :taille, :couleur, :id_inscription)";
 
-    $stmt = $db->prepare($sql);
-    $stmt->execute([
-        'nom' => $dossard->getNom(),
-        'numero' => $dossard->getNumero(),
-        'taille' => $dossard->getTaille(),
-        'couleur' => $dossard->getCouleur(),
-        'id_inscription' => $dossard->getIdInscription()
-    ]);
+        $stmt = $db->prepare($sql);
+        $stmt->execute([
+            'nom' => $dossard->getNom(),
+            'numero' => $dossard->getNumero(),
+            'taille' => $dossard->getTaille(),
+            'couleur' => $dossard->getCouleur(),
+            'id_inscription' => $dossard->getIdInscription()
+        ]);
 
-    // 2. ID généré
-    $id = $db->lastInsertId();
+        // 2. QR CODE
+        $id = $db->lastInsertId();
 
-    // 3. contenu QR CORRECT
-    $dataQR =
+        $dataQR =
 "===== DOSSARD =====\n".
 "ID Dossard: ".$id."\n".
 "ID Inscription: ".$dossard->getIdInscription()."\n".
@@ -35,17 +42,14 @@ class DossardController {
 "Couleur: ".$dossard->getCouleur()."\n".
 "====================";
 
-    // 4. chemin QR
-    $fileName = "qr_" . $id . ".png";
-    $filePath = __DIR__ . "/../qr/" . $fileName;
+        $fileName = "qr_" . $id . ".png";
+        $filePath = __DIR__ . "/../qr/" . $fileName;
 
-    // 5. génération QR
-    \QRcode::png($dataQR, $filePath, QR_ECLEVEL_L, 12);
+        \QRcode::png($dataQR, $filePath, QR_ECLEVEL_L, 12);
 
-    // 6. update DB
-    $stmt = $db->prepare("UPDATE dossard SET qr_code=? WHERE id_dossard=?");
-    $stmt->execute([$fileName, $id]);
-}
+        $stmt = $db->prepare("UPDATE dossard SET qr_code=? WHERE id_dossard=?");
+        $stmt->execute([$fileName, $id]);
+    }
 
     public function delete($id) {
         $db = Config::getConnexion();
@@ -81,23 +85,33 @@ class DossardController {
     }
 }
 
-// ✅ IMPORTANT : CODE EXECUTION ICI (APRÈS LA CLASSE)
+
+/* =========================
+   ✅ TRAITEMENT FORMULAIRE
+========================= */
 
 $controller = new DossardController();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $id_inscription = $_POST['id_inscription'];
-    $nom_global = $_POST['nom_global'];
+    $nom_global = trim($_POST['nom_global']);
 
     $existing = $controller->getByInscription($id_inscription);
-    $countExisting = count($existing);
 
     for ($i = 0; $i < count($_POST['numero']); $i++) {
 
-        // ➤ si déjà existe → UPDATE (PAS DELETE)
+        $taille = $_POST['taille'][$i];
+        $color  = trim($_POST['couleur'][$i]);
+
+        /* ✅ VALIDATION COULEUR */
+        if (!isValidHex($color)) {
+            die("Couleur invalide !");
+        }
+
         if (isset($existing[$i])) {
 
+            // UPDATE
             $db = Config::getConnexion();
             $stmt = $db->prepare("
                 UPDATE dossard SET
@@ -107,20 +121,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ");
 
             $stmt->execute([
-                $_POST['taille'][$i],
-                $_POST['couleur'][$i],
+                $taille,
+                $color,
                 $existing[$i]['id_dossard']
             ]);
 
         } else {
 
-            // ➤ sinon INSERT
+            // INSERT
             $d = new Dossard(
                 null,
                 $nom_global,
                 $_POST['numero'][$i],
-                $_POST['taille'][$i],
-                $_POST['couleur'][$i],
+                $taille,
+                $color,
                 $id_inscription
             );
 

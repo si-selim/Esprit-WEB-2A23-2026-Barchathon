@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const nom = document.getElementById("nom_global");
 
-    // ================= NOM =================
+    
     function validateNom() {
         if (!nom) return true;
 
@@ -26,32 +26,40 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ================= COULEUR =================
+    
     function validateCouleur() {
-        let valid = true;
+    let valid = true;
 
-        document.querySelectorAll(".couleur").forEach(c => {
+    document.querySelectorAll(".couleur").forEach(c => {
 
-            let error = c.parentElement.querySelector(".error-couleur");
+        let error = c.parentElement.querySelector(".error-couleur");
+        let value = c.value.trim();
 
-            if (c.value.trim() === "") {
-                if (error) {
-                    error.style.color = "red";
-                    error.innerText = "Couleur obligatoire";
-                }
-                valid = false;
-            } else {
-                if (error) {
-                    error.style.color = "green";
-                    error.innerText = "OK";
-                }
-            }
-        });
+        // couleur vide
+        if (value === "") {
+            error.style.color = "red";
+            error.innerText = "Couleur obligatoire";
+            valid = false;
+            return;
+        }
 
-        return valid;
-    }
+        // format HEX valide
+        const regex = /^#[0-9A-Fa-f]{6}$/;
 
-    // ================= TAILLE =================
+        if (!regex.test(value)) {
+            error.style.color = "red";
+            error.innerText = "Format invalide (ex: #FF0000)";
+            valid = false;
+        } else {
+            error.style.color = "green";
+            error.innerText = "OK";
+        }
+    });
+
+    return valid;
+}
+
+    
     function validateTaille() {
         let valid = true;
 
@@ -76,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return valid;
     }
 
-    // ================= EVENTS =================
+    
     if (nom) nom.addEventListener("input", validateNom);
 
     document.querySelectorAll(".couleur").forEach(c => {
@@ -87,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
         t.addEventListener("change", validateTaille);
     });
 
-    // ================= SUBMIT =================
+    
     form.addEventListener("submit", function (e) {
 
         let okNom = validateNom();
@@ -96,9 +104,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!okNom || !okCouleur || !okTaille) {
             e.preventDefault();
-            alert("❌ Vérifie tous les champs !");
+            alert(" Vérifie tous les champs !");
         } else {
-            alert("✅ Dossards enregistrés !");
+            alert(" Dossards enregistrés !");
         }
     });
 

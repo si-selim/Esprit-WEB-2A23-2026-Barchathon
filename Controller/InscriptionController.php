@@ -4,12 +4,12 @@ require_once __DIR__ . "/../Model/Inscription.php";
 
 class InscriptionController {
 
-    // ➤ AJOUT inscription + retour ID
+    // ================= ADD =================
     public function add(Inscription $inscription) {
 
         $sql = "INSERT INTO inscription
-        (nb_personnes, mode_de_paiement, date_inscription, date_paiement, id_user, id_parcours)
-        VALUES (:nb, :mode, NOW(), :date, :user, :parcours)";
+        (nb_personnes, mode_de_paiement, date_inscription, date_paiement, id_user, id_parcours, statut_paiement)
+        VALUES (:nb, :mode, NOW(), :date, :user, :parcours, :statut)";
 
         $db = Config::getConnexion();
         $stmt = $db->prepare($sql);
@@ -19,37 +19,36 @@ class InscriptionController {
             'mode' => $inscription->getModePaiement(),
             'date' => date('Y-m-d H:i:s'),
             'user' => $inscription->getIdUser(),
-            'parcours' => $inscription->getIdParcours()
+            'parcours' => $inscription->getIdParcours(),
+            'statut' => $inscription->getStatutPaiement() ?? "unpaid"
         ]);
 
-        // 🔥 IMPORTANT : ID pour redirection vers dossard
         return $db->lastInsertId();
     }
 
-    // ➤ DELETE
+    // ================= DELETE =================
     public function delete($id) {
         $db = Config::getConnexion();
         $stmt = $db->prepare("DELETE FROM inscription WHERE id_inscription=?");
         $stmt->execute([$id]);
     }
 
-    // ➤ GET ALL
+    // ================= GET ALL =================
     public function getAll() {
         $db = Config::getConnexion();
         return $db->query("SELECT * FROM inscription ORDER BY id_inscription DESC")
                   ->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // ➤ GET BY ID (corrigé)
+    // ================= GET BY ID =================
     public function getById($id) {
         $db = Config::getConnexion();
         $stmt = $db->prepare("SELECT * FROM inscription WHERE id_inscription=?");
         $stmt->execute([$id]);
-
-        return $stmt->fetch(PDO::FETCH_ASSOC); // ✔ IMPORTANT FIX
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // ➤ UPDATE
+    // ================= UPDATE =================
     public function update(Inscription $inscription, $id) {
 
         $db = Config::getConnexion();
@@ -71,15 +70,76 @@ class InscriptionController {
             'id' => $id
         ]);
     }
+
+    // ================= STATS =================
+    public function getPaidStats() {
+
+    $db = Config::getConnexion();
+
+    $paid = $db->query("
+        SELECT COUNT(*) 
+        FROM inscription 
+        WHERE statut_paiement='paid'
+    ")->fetchColumn();
+
+    $unpaid = $db->query("
+        SELECT COUNT(*) 
+        FROM inscription 
+        WHERE statut_paiement='unpaid'
+    ")->fetchColumn();
+
+    return [
+        'paid' => $paid,
+        'unpaid' => $unpaid
+    ];
 }
 
-/* =====================================================
-   🔥 EXECUTION (POST + DELETE)
-===================================================== */
+    // ================= PAIEMENT =================
+    public function payer($id) {
 
+        $db = Config::getConnexion();
+
+        $stmt = $db->prepare("
+            UPDATE inscription 
+            SET statut_paiement='paid'
+            WHERE id_inscription=?
+        ");
+
+        $stmt->execute([$id]);
+    }
+    public function getStats() {
+
+    $db = Config::getConnexion();
+
+    $totalInscriptions = $db->query("SELECT COUNT(*) FROM inscription")->fetchColumn();
+
+    $totalParticipants = $db->query("SELECT SUM(nb_personnes) FROM inscription")->fetchColumn();
+
+    $parcours = $db->query("
+        SELECT id_parcours, COUNT(*) as total
+        FROM inscription
+        GROUP BY id_parcours
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    $paiement = $db->query("
+        SELECT mode_de_paiement, COUNT(*) as total
+        FROM inscription
+        GROUP BY mode_de_paiement
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    return [
+        'totalInscriptions' => $totalInscriptions,
+        'totalParticipants' => $totalParticipants,
+        'parcours' => $parcours,
+        'paiement' => $paiement
+    ];
+}
+}
+
+
+// ================= ACTIONS =================
 $controller = new InscriptionController();
 
-/* ➤ DELETE */
 if (isset($_GET['delete'])) {
 
     $controller->delete($_GET['delete']);
@@ -88,14 +148,17 @@ if (isset($_GET['delete'])) {
 
     if ($redirect == "front_inscription") {
         header("Location: ../View/FrontOffice/inscription.php");
-    } elseif ($redirect == "front_afficher") {
-        header("Location: ../View/FrontOffice/afficher.php");
     } else {
         header("Location: ../View/BackOffice/afficher.php");
     }
     exit;
 }
 
+if (isset($_GET['pay'])) {
 
+    $controller->payer($_GET['pay']);
 
+    header("Location: ../View/FrontOffice/inscription.php");
+    exit;
+}
 ?>

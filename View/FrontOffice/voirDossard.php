@@ -7,23 +7,24 @@ $id = $_GET['id_inscription'] ?? 0;
 $dossardController = new DossardController();
 $inscriptionController = new InscriptionController();
 
-// inscription
+
 $data = $inscriptionController->getById($id);
 
 $nb = 0;
 if ($data) {
     $nb = is_array($data) ? ($data['nb_personnes'] ?? 0) : 0;
 }
-// dossards existants
+
 $liste = $dossardController->getByInscription($id);
 
-// ✔ IMPORTANT : éviter erreur $total
+
 $total = max($nb, count($liste));
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="inscription.css">
 <meta charset="UTF-8">
 <title>Voir Dossards</title>
 
@@ -98,109 +99,127 @@ td {
 
 <div class="page-shell">
 
-<header class="topbar">
-    <div><strong>BarchaThon</strong></div>
+    <!-- ✅ NAVBAR IDENTIQUE -->
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">BT</span>
+            <div>
+                <strong>BarchaThon</strong>
+                <small>Front Office</small>
+            </div>
+        </div>
 
-    <nav class="nav-links">
-        <a href="inscription.php">Inscription</a>
-    </nav>
-</header>
+        <nav class="nav-links">
+            <a href="inscription.php">Inscription</a>
+            <a href="dossard.php">Dossard</a>
+            <a href="stats.php">Statistiques</a>
+        </nav>
 
-<main>
+        <div class="user-badge">Participant Demo</div>
+    </header>
 
-<div class="card">
+    <!-- ✅ CONTENU -->
+    <main class="content-grid">
 
-<h2>Dossards de l'inscription #<?php echo $id; ?></h2>
+        <section class="card card-form">
 
-<?php if($nb == 0) { ?>
-    <p style="color:red;">Aucune inscription trouvée</p>
-<?php } else { ?>
+            <div class="card-title">
+                <div>
+                    <h1>Dossards de l'inscription #<?php echo $id; ?></h1>
+                    <p>Liste des dossards associés</p>
+                </div>
+            </div>
 
-<?php if(count($liste) == 0) { ?>
-    <p style="color:red;">Aucun dossard trouvé</p>
-<?php } ?>
+            <?php if($nb == 0) { ?>
+                <p style="color:red;">Aucune inscription trouvée</p>
+            <?php } else { ?>
 
-<div class="table-wrapper">
+            <?php if(count($liste) == 0) { ?>
+                <p style="color:red;">Aucun dossard trouvé</p>
+            <?php } ?>
 
-<table>
-<thead>
-<tr>
-    <th>Action</th>
-    <th>Nom</th>
-    <th>Numéro</th>
-    <th>Taille</th>
-    <th>Couleur</th>
-    <th>QR Code</th>
-</tr>
-</thead>
+            <div class="table-wrapper">
 
-<tbody>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Nom</th>
+                            <th>Numéro</th>
+                            <th>Taille</th>
+                            <th>Couleur</th>
+                            <th>QR Code</th>
+                        </tr>
+                    </thead>
 
-<?php for($i = 0; $i < $total; $i++) { ?>
+                    <tbody>
 
-<tr>
+                    <?php for($i = 0; $i < $total; $i++) { ?>
+                    <tr>
 
-<td>
-<?php if(isset($liste[$i])) { ?>
-    ✔
-<?php } else { ?>
-    <a href="dossard.php?id_inscription=<?php echo $id; ?>" class="btn btn-warning">
-    Compléter
-</a>
-<?php } ?>
-</td>
+                        <td>
+                        <?php if(isset($liste[$i])) { ?>
+                            ✔
+                        <?php } else { ?>
+                            <a href="dossard.php?id_inscription=<?php echo $id; ?>" class="btn btn-secondary btn-small">
+                                Compléter
+                            </a>
+                        <?php } ?>
+                        </td>
 
-<!-- NOM -->
-<td>
-<?php 
-echo $liste[$i]['nom'] ?? $nom_global ?? "—";
-?>
-</td>
+                        <td><?php echo $liste[$i]['nom'] ?? "—"; ?></td>
 
-<!-- NUMERO -->
-<td>
-<?php 
-echo $liste[$i]['numero'] ?? ($i + 1);
-?>
-</td>
+                        <td><?php echo $liste[$i]['numero'] ?? ($i + 1); ?></td>
 
-<!-- TAILLE -->
-<td>
-<?php echo $liste[$i]['taille'] ?? ""; ?>
-</td>
+                        <td><?php echo $liste[$i]['taille'] ?? ""; ?></td>
 
-<!-- COULEUR -->
-<td>
-<?php echo $liste[$i]['couleur'] ?? ""; ?>
-</td>
-<td>
-    <?php if(isset($liste[$i]['qr_code'])) { ?>
-        <img src="../../qr/<?php echo $liste[$i]['qr_code']; ?>" width="80">
-    <?php } else { ?>
-        ❌ Pas de QR
-    <?php } ?>
-</td>
-</tr>
+                        <td>
+                            <?php if(isset($liste[$i]['couleur'])) { ?>
+                                <div style="
+                                    width:20px;
+                                    height:20px;
+                                    margin:auto;
+                                    border-radius:5px;
+                                    background:<?php echo $liste[$i]['couleur']; ?>">
+                                </div>
+                                <small><?php echo $liste[$i]['couleur']; ?></small>
+                            <?php } ?>
+                        </td>
 
-<?php } ?>
+                        <td>
+                            <?php if(isset($liste[$i]['qr_code'])) { ?>
+                                <img src="../../qr/<?php echo $liste[$i]['qr_code']; ?>" width="80">
+                            <?php } else { ?>
+                                Pas de QR
+                            <?php } ?>
+                        </td>
 
-</tbody>
-</table>
+                    </tr>
+                    <?php } ?>
 
-</div>
+                    </tbody>
+                </table>
 
-<?php } ?>
+            </div>
 
-<br>
-<a href="export_pdf.php?id_inscription=<?php echo $id; ?>" 
-   class="btn">
-   📄 Exporter PDF
-</a>
-<a href="inscription.php" class="btn">Retour</a>
+            <?php } ?>
 
-</div>
+            <br>
 
-</main>
+            <div class="action-buttons">
+                <a href="export_pdf.php?id_inscription=<?php echo $id; ?>" 
+                   class="btn btn-primary">
+                    Exporter PDF
+                </a>
+
+                <a href="inscription.php" class="btn btn-outlined">
+                    Retour
+                </a>
+            </div>
+
+        </section>
+
+    </main>
 
 </div>
 

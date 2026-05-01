@@ -117,7 +117,7 @@ $liste = $controller->getAll();
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
+    
     <aside class="sidebar">
         <div class="brand">
             <div class="brand-badge">BT</div>
@@ -132,7 +132,7 @@ $liste = $controller->getAll();
         </nav>
     </aside>
 
-    <!-- CONTENT -->
+    
     <main class="content">
 
         <h1>Gestion des Inscriptions</h1>

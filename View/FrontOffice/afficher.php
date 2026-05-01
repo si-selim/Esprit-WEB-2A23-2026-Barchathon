@@ -10,6 +10,7 @@ $liste = $controller->getAll();
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="inscription.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - FrontOffice</title>
@@ -118,60 +119,69 @@ $liste = $controller->getAll();
 
 <body>
 
-<div class="layout">
+<div class="page-shell">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <!-- ✅ NAVBAR IDENTIQUE -->
+    <header class="topbar">
         <div class="brand">
-            <div class="brand-badge">BT</div>
-            <strong>BarchaThon</strong><br>
-            <small>Organisateur Dashboard</small>
+            <span class="brand-mark">BT</span>
+            <div>
+                <strong>BarchaThon</strong>
+                <small>Front Office</small>
+            </div>
         </div>
 
-        <nav>
-            
-            <a class="side-link" href="afficher.php">Inscriptions</a>
-            
+        <nav class="nav-links">
+            <a href="inscription.php">Inscription</a>
+            <a href="dossard.php">Dossard</a>
+            <a href="afficher.php">Afficher</a>
+            <a href="stats.php">Statistiques</a> <!-- ✅ ajouté -->
         </nav>
-    </aside>
 
-    <!-- CONTENT -->
-    <main class="content">
+        <div class="user-badge">Organisateur</div>
+    </header>
 
-        <h1>Gestion des Inscriptions</h1>
+    <!-- ✅ CONTENU -->
+    <main class="content-grid">
 
-        <div class="card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mode paiement</th>
-                        <th>Circuit</th>
-                        <th>Nb personnes</th>
-                        <th>Date paiement</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        <section class="card card-form">
 
-                <tbody>
-                <?php foreach($liste as $row) { ?>
-                    <tr>
-                        <td><?php echo $row['mode_de_paiement']; ?></td>
+            <div class="card-title">
+                <h1>Gestion des Inscriptions</h1>
+            </div>
 
-                        <td>
-                        <?php 
-                        if ($row['id_parcours'] == 1) echo "10 km";
-                        elseif ($row['id_parcours'] == 2) echo "21 km";
-                        else echo "42 km";
-                        ?>
-                        </td>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mode paiement</th>
+                            <th>Circuit</th>
+                            <th>Nb personnes</th>
+                            <th>Date paiement</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
 
-                        <td><?php echo $row['nb_personnes']; ?></td>
-                        <td><?php echo $row['date_paiement']; ?></td>
+                    <tbody>
+                    <?php foreach($liste as $row) { ?>
+                        <tr>
+                            <td><?php echo $row['mode_de_paiement']; ?></td>
 
-                        <td class="table-actions">
+                            <td>
+                            <?php 
+                            if ($row['id_parcours'] == 1) echo "10 km";
+                            elseif ($row['id_parcours'] == 2) echo "21 km";
+                            else echo "42 km";
+                            ?>
+                            </td>
+
+                            <td><?php echo $row['nb_personnes']; ?></td>
+                            <td><?php echo $row['date_paiement']; ?></td>
+
+                            <td>
                                 <a href="../FrontOffice/voirDossard.php?id_inscription=<?php echo $row['id_inscription']; ?>" 
                                 class="btn btn-secondary">
-                                Voir dossard
+                                Voir
                                 </a>
 
                                 <a href="../../Controller/InscriptionController.php?delete=<?php echo $row['id_inscription']; ?>&redirect=front_afficher" 
@@ -180,13 +190,13 @@ $liste = $controller->getAll();
                                 Supprimer
                                 </a>
                             </td>
-                    </tr>
-                <?php } ?>
-                </tbody>
-            </table>
-        </div>
+                        </tr>
+                    <?php } ?>
+                    </tbody>
+                </table>
+            </div>
 
-        
+        </section>
 
     </main>
 

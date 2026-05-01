@@ -35,7 +35,7 @@ function calculerPrix() {
 
     let total = prixUnitaire * nombre;
 
-    // 🔥 réduction
+    
     if (nombre >= 5) total *= 0.8;
     else if (nombre >= 3) total *= 0.9;
 
@@ -55,11 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const search = document.getElementById("search_id");
     
 
-    // ================= CALCUL PRIX =================
-    // ================= CALCUL PRIX INTELLIGENT =================
-
-
-    // ================= VALIDATION =================
+    
     function validateNb() {
         const error = document.getElementById("error-nb_personnes");
 
@@ -116,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     }
 
-    // ================= EVENTS INPUT =================
+    
     nb.addEventListener("input", function () {
         validateNb();
         calculerPrix();
@@ -130,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
     mode.addEventListener("change", validateMode);
     date.addEventListener("change", validateDate);
 
-    // ================= SUBMIT =================
+    
     form.addEventListener("submit", function (e) {
 
         let ok =
@@ -141,13 +137,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!ok) {
             e.preventDefault();
-            alert("❌ Vérifie les champs !");
+            alert(" Vérifie les champs !");
         } else {
-            alert("✅ Formulaire valide !");
+            alert(" Formulaire valide !");
         }
     });
 
-    // ================= SEARCH DYNAMIC =================
+    
     if (search) {
     search.addEventListener("input", function () {
 
@@ -170,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-// ================= FILL FORM (UPDATE) =================
+
 window.fillForm = function(id, nbVal, modeVal, dateVal, parcours) {
 
     document.getElementById("id_inscription").value = id;
@@ -178,17 +174,17 @@ window.fillForm = function(id, nbVal, modeVal, dateVal, parcours) {
     document.getElementById("mode_paiement").value = modeVal;
     document.getElementById("date_paiement").value = dateVal;
 
-    // 🔥 IMPORTANT : utiliser 1 / 2 / 3
+    
     document.getElementById("circuit").value = parcours;
 
     calculerPrix();
 };
-// ================= DATE AUTO =================
+
 function setTodayDate() {
     const dateInput = document.getElementById("date_paiement");
 
     let today = new Date();
-    let formatted = today.toISOString().split('T')[0]; // format YYYY-MM-DD
+    let formatted = today.toISOString().split('T')[0]; 
 
     dateInput.value = formatted;
 }

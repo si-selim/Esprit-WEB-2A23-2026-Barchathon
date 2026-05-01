@@ -7,10 +7,10 @@ $id = $_GET['id_inscription'] ?? 0;
 $inscriptionController = new InscriptionController();
 $dossardController = new DossardController();
 
-// 🔥 inscription
+
 $inscription = $inscriptionController->getById($id);
 
-// 🔥 dossards
+
 $dossards = $dossardController->getByInscription($id);
 ?>
 
